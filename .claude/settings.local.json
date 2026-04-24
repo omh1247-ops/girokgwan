@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sips -g pixelWidth -g pixelHeight \"/Users/ommyunghun/Desktop/기록관/홈페이지/logo.png/기록관 폰트로고 풀.png\")",
+      "Bash(grep -iE \"\\\\.\\(jpg|jpeg|png|webp|gif\\)$\")",
+      "Bash(xargs ls *)",
+      "Bash(sips -g pixelWidth -g pixelHeight \"/Users/ommyunghun/Desktop/기록관/홈페이지/Moment/Untitled-1.jpg\")",
+      "Bash(mv \"logo.png/기록관 폰트로고.png\" \"logo.png/logo-text.png\")",
+      "Bash(mv \"logo.png/기록관 폰트로고 풀.png\" \"logo.png/logo-full.png\")",
+      "Bash(mv \"portraiture/portrait04JPG.JPG\" \"portraiture/portrait04.jpg\")",
+      "Bash(mv \"portraiture/portrait05.JPG\" \"portraiture/portrait05.jpg\")",
+      "Bash(mv \"portraiture/portrait06.JPG\" \"portraiture/portrait06.jpg\")",
+      "Bash(grep -v \"^src=\\\\\"$\")",
+      "Bash(chmod +x \"/Users/ommyunghun/Desktop/기록관/홈페이지/scripts/auto-rename.sh\")",
+      "Bash(launchctl load *)",
+      "Bash(mv \"/Users/ommyunghun/Desktop/기록관/홈페이지/\"* \"/Users/ommyunghun/Documents/GitHub/girokgwan/\")",
+      "Bash(mv \"/Users/ommyunghun/Desktop/기록관/홈페이지/\".[^.]* \"/Users/ommyunghun/Documents/GitHub/girokgwan/\")"
+    ]
+  }
+}

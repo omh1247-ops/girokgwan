@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>기록관 — Photography & Videography</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --card: #f5f5f5;
+      --text: #0d0d0d;
+      --sub: #888;
+      --border: #e0e0e0;
+      --white: #0d0d0d;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 2rem 3rem 0 10px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+    nav.scrolled { border-bottom-color: var(--border); }
+    .nav-logo {
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--sub);
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-mobile-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 65px 3rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(150deg, #ebebeb 0%, #ffffff 55%);
+    }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      align-items: center;
+      width: 100%;
+      gap: 4rem;
+    }
+    .hero-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      padding: 80px 0;
+    }
+    .hero-photo {
+      padding: 80px 0;
+    }
+    .hero-photo img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .hero-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sub);
+      margin-bottom: 4px;
+    }
+    .hero-title {
+      font-size: clamp(4.5rem, 12vw, 10rem);
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--white);
+      margin-bottom: 1.8rem;
+    }
+    .hero-sub {
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
+      color: var(--sub);
+      font-weight: 300;
+      max-width: 440px;
+      line-height: 1.9;
+      margin-top: 4px;
+      margin-bottom: 3rem;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: var(--white);
+      text-decoration: none;
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.4);
+      padding-bottom: 3px;
+      transition: opacity 0.2s;
+    }
+    .hero-cta:hover { opacity: 0.5; }
+    .hero-scroll {
+      position: absolute;
+      bottom: 3rem;
+      left: 0.8rem;
+      z-index: 1;
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sub);
+      writing-mode: vertical-rl;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .hero-scroll::after {
+      content: '';
+      width: 1px;
+      height: 56px;
+      background: var(--sub);
+      animation: scrollLine 1.8s ease-in-out infinite;
+    }
+    @keyframes scrollLine {
+      0%   { transform: scaleY(0); transform-origin: top; }
+      50%  { transform: scaleY(1); transform-origin: top; }
+      51%  { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+
+    /* ─── SECTION BASE ─── */
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 8rem 3rem;
+    }
+    .section-tag {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sub);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    .section-desc {
+      font-size: 0.9rem;
+      color: var(--sub);
+      max-width: 460px;
+      line-height: 1.95;
+    }
+
+    /* ─── ABOUT ─── */
+    #about .wrap {
+      max-width: 720px;
+    }
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .stat-num {
+      font-size: 2.2rem;
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      color: var(--white);
+    }
+    .stat-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sub);
+      margin-top: 0.25rem;
+    }
+    .about-visual {
+      aspect-ratio: 3/4;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--border);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+    .about-visual::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #ebebeb 0%, #f5f5f5 100%);
+    }
+    .about-visual span { position: relative; z-index: 1; }
+
+    /* ─── PORTFOLIO ─── */
+    .portfolio-tabs {
+      display: flex;
+      gap: 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--sub);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .tab-btn.active { color: var(--white); border-bottom-color: var(--white); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .photo-section { margin-bottom: 3.5rem; }
+    .photo-section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sub);
+      padding-bottom: 0.9rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+    .photo-grid {
+      columns: 3;
+      column-gap: 5px;
+    }
+    .photo-item {
+      background: var(--card);
+      overflow: visible;
+      cursor: pointer;
+      position: relative;
+      break-inside: avoid;
+      margin-bottom: 3px;
+      z-index: 0;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+    .photo-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: filter 0.4s ease;
+    }
+    .photo-item:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 0 1.5px rgba(255,255,255,0.9), 0 30px 80px rgba(0,0,0,0.5);
+      z-index: 10;
+    }
+    .photo-grid:hover .photo-item img { filter: grayscale(100%); opacity: 0.6; }
+    .photo-grid:hover .photo-item:hover img { filter: grayscale(0%); opacity: 1; }
+    .photo-section-empty {
+      padding: 2.5rem 0;
+      color: var(--sub);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    /* 라이트박스 */
+    .lightbox {
+      display: none;
+      position: fixed; inset: 0;
+      z-index: 999;
+      background: rgba(0,0,0,0.92);
+      align-items: center;
+      justify-content: center;
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img {
+      max-width: 86vw;
+      max-height: 92vh;
+      object-fit: contain;
+      cursor: default;
+      user-select: none;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 1.4rem; right: 1.6rem;
+      color: #fff;
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.6;
+    }
+    .lightbox-close:hover { opacity: 1; }
+    .lightbox-nav {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      opacity: 0.5;
+      padding: 1rem;
+      line-height: 1;
+      user-select: none;
+      transition: opacity 0.2s;
+    }
+    .lightbox-nav:hover { opacity: 1; }
+    .lightbox-prev { left: 1rem; }
+    .lightbox-next { right: 1rem; }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+    .video-card {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: var(--card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+    }
+    .video-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+    .video-card:hover img { transform: scale(1.04); }
+    .video-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: background 0.3s;
+    }
+    .video-card:hover .video-overlay { background: rgba(0,0,0,0.15); }
+    .play-ring {
+      width: 44px; height: 44px;
+      border: 1px solid rgba(255,255,255,0.65);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 0.7rem;
+    }
+    .play-ring svg { width: 14px; height: 14px; fill: white; margin-left: 3px; }
+    .video-label {
+      position: absolute;
+      bottom: 0.7rem;
+      left: 0.7rem;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.9);
+      text-align: left;
+      padding: 0;
+    }
+
+    /* ─── SECTION SUBNAV ─── */
+    .section-subnav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+      padding-bottom: 0;
+      padding-top: 0;
+      height: 52px;
+      position: sticky;
+      top: 62px;
+      z-index: 50;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      margin-left: -3rem;
+      margin-right: -3rem;
+      padding-left: 3rem;
+      padding-right: 3rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0);
+      border-bottom-color: transparent;
+      transition: box-shadow 0.6s ease, border-bottom-color 0.6s ease, height 0.6s ease;
+    }
+    .section-subnav a {
+      color: var(--sub);
+      text-decoration: none;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid transparent;
+      margin-bottom: -1px;
+      display: inline-block;
+      transform-origin: left bottom;
+      transition: color 0.6s ease, border-bottom-color 0.2s, transform 0.6s ease;
+      white-space: nowrap;
+    }
+    .section-subnav a:hover { color: var(--white); border-bottom-color: var(--white); }
+    .section-subnav a.active {
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.9rem;
+      border-bottom-color: var(--text);
+      letter-spacing: 0.06em;
+    }
+    .section-subnav.is-stuck {
+      box-shadow: 0 6px 28px rgba(0,0,0,0.1);
+      border-bottom-color: var(--border);
+    }
+    .section-subnav.is-stuck a {
+      transform: scale(1.18) translateY(8px);
+      color: var(--text);
+    }
+
+    /* ─── ACCORDION ─── */
+    .accordion { border-top: 1px solid var(--border); }
+    .accordion-item { border-bottom: 1px solid var(--border); }
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.6rem 0;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.2s;
+    }
+    .accordion-header:hover { opacity: 0.6; }
+    .accordion-title {
+      font-size: 1.1rem;
+      font-weight: 300;
+      letter-spacing: 0.04em;
+    }
+    .accordion-count {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--sub);
+      margin-left: 0.8rem;
+    }
+    .accordion-arrow {
+      font-size: 1.2rem;
+      color: var(--sub);
+      transition: transform 0.3s ease;
+    }
+    .accordion-item.open .accordion-arrow { transform: rotate(45deg); }
+    .accordion-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+    }
+    .accordion-item.open .accordion-body { max-height: 2000px; }
+    .accordion-inner { padding-bottom: 2rem; }
+
+    /* ─── WORK TABS ─── */
+    #work .wrap { padding-top: 3rem; }
+    .work-sticky-header {
+      position: sticky;
+      top: 62px;
+      z-index: 55;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(14px);
+      margin-left: -3rem;
+      margin-right: -3rem;
+      padding-left: 3rem;
+      padding-right: 3rem;
+      border-bottom: 1px solid transparent;
+      margin-bottom: 2.5rem;
+      transition: border-color 0.4s, box-shadow 0.4s;
+    }
+    .work-sticky-header.is-stuck {
+      border-bottom-color: var(--border);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    }
+    .work-tabs {
+      display: flex;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .work-tab-btn {
+      font-size: clamp(2.6rem, 5vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--sub);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0 0 3rem 0;
+      margin: 0 2rem;
+      margin-bottom: -1px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.25s, border-color 0.25s, font-size 0.35s, padding 0.35s;
+    }
+    .work-tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
+    .work-tab-btn:hover { color: var(--text); }
+    .work-sticky-header.is-stuck .work-tab-btn {
+      font-size: 1.4rem;
+      padding: 0.8rem 0;
+    }
+    .work-sticky-header .section-subnav {
+      position: static;
+      margin-left: 0;
+      margin-right: 0;
+      background: none;
+      backdrop-filter: none;
+      box-shadow: none;
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+    .work-panel { display: none; }
+    .work-panel.active { display: block; }
+
+    /* ─── SERVICES ─── */
+    .services-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3.5rem;
+    }
+    .services-note {
+      font-size: 0.78rem;
+      color: var(--sub);
+      text-align: right;
+      line-height: 1.7;
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--border);
+    }
+    .services-common {
+      margin-top: 2rem;
+      padding: 1.8rem 2rem;
+      border: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem 3rem;
+    }
+    .services-common-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--sub);
+      line-height: 1.7;
+    }
+    .services-common-item::before {
+      content: '—';
+      flex-shrink: 0;
+      color: var(--border);
+    }
+    .service-card {
+      padding: 2.5rem 1.8rem;
+      border-right: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    .service-card:last-child { border-right: none; }
+    .service-card:hover { background: var(--card); }
+    .service-num {
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      color: var(--sub);
+      margin-bottom: 2rem;
+    }
+    .service-name {
+      font-size: 1rem;
+      font-weight: 400;
+      margin-bottom: 0.9rem;
+      letter-spacing: -0.01em;
+    }
+    .service-desc {
+      font-size: 0.8rem;
+      color: var(--sub);
+      line-height: 1.85;
+      margin-bottom: 1.8rem;
+    }
+    .pkg-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      margin-bottom: 1.8rem;
+    }
+    .pkg-item {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.75rem;
+      color: var(--sub);
+    }
+    .pkg-item::before {
+      content: '';
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: #444;
+      flex-shrink: 0;
+    }
+    .service-link {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sub);
+      text-decoration: none;
+      border-bottom: 1px solid #333;
+      padding-bottom: 2px;
+      transition: all 0.2s;
+    }
+    .service-link:hover { color: var(--white); border-bottom-color: var(--white); }
+
+    /* ─── SCHEDULE ─── */
+    .cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2.5rem;
+    }
+    .cal-admin-btn {
+      display: none;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sub);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 0.5rem 1.1rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+    }
+    .cal-admin-btn:hover { border-color: var(--text); color: var(--text); }
+    .cal-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .cal-month-label {
+      font-size: 0.95rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+    }
+    .cal-arrow {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--sub);
+      font-size: 1.1rem;
+      padding: 0.3rem 0.7rem;
+      transition: color 0.2s;
+      font-family: inherit;
+      line-height: 1;
+    }
+    .cal-arrow:hover { color: var(--text); }
+    .cal-grid-wrap {
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+    .cal-dow {
+      text-align: center;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sub);
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    .cal-dow:last-child { border-right: none; }
+    .cal-dow:first-child, .cal-dow:nth-child(7) { color: #d93535; }
+    /* 일·토 날짜 빨강 (today 제외) */
+    .cal-grid > .cal-cell:not(.today):nth-child(7n+8) .cal-date,
+    .cal-grid > .cal-cell:not(.today):nth-child(7n)   .cal-date { color: #d93535; }
+    /* 이번 달 아닌 일·토 날짜는 연하게 */
+    .cal-grid > .cal-cell.other-month:nth-child(7n+8) .cal-date,
+    .cal-grid > .cal-cell.other-month:nth-child(7n)   .cal-date { color: #e8aaaa; }
+    .cal-cell {
+      min-height: 72px;
+      padding: 0.45rem 0.5rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      vertical-align: top;
+    }
+    .cal-cell:nth-child(7n) { border-right: none; }
+    .cal-row-last .cal-cell { border-bottom: none; }
+    .cal-cell.other-month { background: #fafafa; }
+    .cal-date {
+      font-size: 0.7rem;
+      color: var(--text);
+      width: 20px; height: 20px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 0.25rem;
+      border-radius: 50%;
+    }
+    .cal-cell.other-month .cal-date { color: #ccc; }
+    .cal-cell.today .cal-date {
+      background: var(--text);
+      color: #fff;
+    }
+    .cal-event {
+      font-size: 0.58rem;
+      padding: 2px 5px;
+      margin-bottom: 2px;
+      line-height: 1.4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border-radius: 2px;
+      display: block;
+    }
+    .cal-event.booked  { background: #4d5e3a; color: #fff; }
+    .cal-event.hold    { background: #e53935; color: #fff; }
+    .cal-event.available { background: #e6f4ea; color: #1e7e34; }
+    .admin-mode .cal-cell:not(.other-month) { cursor: pointer; }
+    .admin-mode .cal-cell:not(.other-month):hover { background: #f5f5f5; }
+    .cal-legend {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      font-size: 0.7rem;
+      color: var(--sub);
+    }
+    .cal-legend span { display: flex; align-items: center; gap: 0.4rem; }
+    .leg-dot {
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    /* ─── MODALS ─── */
+    .cal-modal-bg {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .cal-modal-bg.open { display: flex; }
+    .cal-modal {
+      background: #fff;
+      padding: 2.5rem;
+      width: 90%;
+      max-width: 380px;
+      border: 1px solid var(--border);
+    }
+    .cal-modal h3 {
+      font-size: 1rem;
+      font-weight: 400;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.03em;
+    }
+    .cal-modal input, .cal-modal select {
+      width: 100%;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid var(--border);
+      font-family: inherit;
+      font-size: 0.85rem;
+      margin-bottom: 0.7rem;
+      outline: none;
+      color: var(--text);
+      background: #fff;
+      appearance: none;
+    }
+    .cal-modal input:focus, .cal-modal select:focus { border-color: var(--text); }
+    .cal-modal-btns {
+      display: flex;
+      gap: 0.7rem;
+      margin-top: 1.2rem;
+    }
+    .cal-btn-ok {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--text);
+      color: #fff;
+      border: none;
+      font-family: inherit;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .cal-btn-ok:hover { opacity: 0.65; }
+    .cal-btn-cancel {
+      flex: 1;
+      padding: 0.75rem;
+      background: none;
+      color: var(--sub);
+      border: 1px solid var(--border);
+      font-family: inherit;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+    .cal-err { color: #c00; font-size: 0.75rem; margin-top: 0.3rem; min-height: 1em; }
+    .cal-day-events { margin-top: 0.8rem; border-top: 1px solid var(--border); padding-top: 0.8rem; }
+    .cal-ev-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      gap: 0.5rem;
+    }
+    .cal-ev-row:last-child { border-bottom: none; }
+    .cal-ev-del {
+      background: none;
+      border: none;
+      color: #bbb;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0 0.2rem;
+      line-height: 1;
+      transition: color 0.2s;
+      flex-shrink: 0;
+    }
+    .cal-ev-del:hover { color: #000; }
+    @media (max-width: 900px) {
+      .cal-header { flex-direction: column; gap: 0.8rem; }
+      .cal-cell { min-height: 52px; padding: 0.3rem; }
+      .cal-event { display: none; }
+      .cal-cell.has-event::after {
+        content: '•';
+        font-size: 0.7rem;
+        display: block;
+        color: #555;
+        line-height: 1;
+      }
+    }
+
+    /* ─── CONTACT ─── */
+    #contact .wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      border-top: 1px solid var(--border);
+    }
+    .contact-title {
+      font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    .contact-sub {
+      font-size: 0.88rem;
+      color: var(--sub);
+      line-height: 1.95;
+    }
+    .contact-links { display: flex; flex-direction: column; justify-content: center; }
+    .c-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: opacity 0.2s;
+    }
+    .c-link:hover { opacity: 0.55; }
+    .c-link-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sub);
+      margin-bottom: 0.3rem;
+    }
+    .c-link-val { font-size: 0.92rem; }
+    .c-arrow { font-size: 1.1rem; color: var(--sub); }
+    .contact-info {
+      padding-top: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--sub);
+      letter-spacing: 0.03em;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-copy { font-size: 0.72rem; color: var(--sub); }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a {
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--sub);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--white); }
+
+    /* ─── FADE IN ─── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: none; }
+
+    /* ─── MOBILE ─── */
+    @media (max-width: 900px) {
+      /* Nav */
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .nav-mobile-btn { display: block; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 57px; left: 0; right: 0;
+        background: rgba(255,255,255,0.97);
+        padding: 2rem 1.5rem;
+        gap: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        z-index: 99;
+      }
+
+      /* Hero — 텍스트 전체 너비로 */
+      #hero { padding: 60px 1.5rem 3rem; }
+      .hero-content { grid-template-columns: 1fr; }
+      .hero-text { align-items: flex-start; padding: 2rem 0 1rem; }
+      .hero-photo { display: none; }
+      .hero-scroll { display: none; }
+      .hero-title { font-size: clamp(3.5rem, 18vw, 6rem); }
+
+      /* Sections */
+      .wrap { padding: 4rem 1.5rem; }
+      #work .wrap { padding-top: 2rem; }
+
+      /* Work tabs */
+      .work-tabs { margin-left: -1.5rem; margin-right: -1.5rem; padding-left: 1.5rem; padding-right: 1.5rem; }
+      .work-tab-btn { font-size: clamp(1.8rem, 7vw, 2.6rem); padding: 0 0 1.2rem; margin: 0 1rem; }
+      .work-sticky-header.is-stuck .work-tab-btn { font-size: 1.1rem; padding: 0.6rem 0; }
+
+      /* Section subnav — 가로 스크롤 */
+      .section-subnav {
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+      .section-subnav::-webkit-scrollbar { display: none; }
+      .section-subnav a { white-space: nowrap; }
+
+      /* Work sticky header */
+      .work-sticky-header {
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+
+      /* Photo / Video */
+      .photo-grid { columns: 2; column-gap: 4px; }
+      .video-grid { grid-template-columns: 1fr 1fr; }
+
+      /* About */
+      #about .wrap { grid-template-columns: 1fr; gap: 3rem; }
+      .about-visual { aspect-ratio: 4/3; }
+
+      /* Services */
+      .services-header { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+      .services-note { text-align: left; }
+      .services-grid { grid-template-columns: 1fr 1fr; }
+      .services-common { grid-template-columns: 1fr; }
+      .service-card { border-right: none; border-bottom: 1px solid var(--border); }
+      .service-card:nth-child(odd) { border-right: 1px solid var(--border); }
+      .service-card:nth-last-child(-n+2) { border-bottom: none; }
+
+      /* Calendar */
+      .cal-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .cal-grid { min-width: 320px; }
+      .cal-cell { min-height: 48px; padding: 0.25rem; }
+      .cal-date { font-size: 0.65rem; width: 18px; height: 18px; }
+      .cal-dow { font-size: 0.55rem; padding: 0.5rem 0; }
+      .cal-modal { padding: 1.5rem; }
+
+      /* Directions */
+      #directions .wrap > div[style*="grid"] { grid-template-columns: 1fr; gap: 2rem; }
+      #directions .wrap > div > div:last-child { aspect-ratio: 4/3; }
+
+      /* Contact */
+      #contact .wrap { grid-template-columns: 1fr; gap: 3rem; }
+
+      /* Footer */
+      footer { padding: 1.5rem; flex-direction: column; gap: 1rem; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title { font-size: clamp(3rem, 20vw, 5rem); }
+      .photo-grid { columns: 2; }
+      .video-grid { grid-template-columns: 1fr; }
+      .services-grid { grid-template-columns: 1fr; }
+      .service-card { border-right: none !important; }
+      .service-card:last-child { border-bottom: none; }
+      .work-tab-btn { font-size: clamp(1.6rem, 8vw, 2.2rem); margin: 0 0.7rem; }
+      .accordion-title { font-size: 0.95rem; }
+      .section-title { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+      .contact-title { font-size: clamp(2rem, 8vw, 3rem); }
+      /* 캘린더 모달 시간 선택 */
+      #evAddForm div[style*="flex"] { flex-wrap: wrap; gap: 0.4rem; }
+      #evAddForm select { min-width: 60px; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="nav">
+  <a class="nav-logo" href="#hero" style="margin-bottom:10px;"><img src="logo.png/logo-text.png" alt="기록관" style="height:18px;width:auto;display:block;"></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about" onclick="closeMenu()">About</a></li>
+    <li><a href="#work" onclick="switchWork('photo'); closeMenu(); return false;">Photo</a></li>
+    <li><a href="#work" onclick="switchWork('video'); closeMenu(); return false;">Video</a></li>
+    <li><a href="#services" onclick="closeMenu()">Services</a></li>
+    <li><a href="#schedule" onclick="closeMenu()">Schedule</a></li>
+    <li><a href="#directions" onclick="closeMenu()">오시는길</a></li>
+    <li><a href="#contact" onclick="closeMenu()">Contact</a></li>
+  </ul>
+  <button class="nav-mobile-btn" onclick="toggleMenu()">☰</button>
+</nav>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <p class="hero-label">Seoul, Korea · Since 2025</p>
+      <div style="margin-bottom:3px;">
+        <img src="logo.png/logo-full.png" alt="기록관" style="height:auto;width:100%;max-width:240px;display:block;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;margin-top:-22px;margin-bottom:-22px;">
+      </div>
+      <p class="hero-sub">순간의 감정과 이야기를 기록합니다</p>
+    </div>
+    <div class="hero-photo">
+      <img src="Moment/moment01.jpg" alt="기록관 포트폴리오">
+    </div>
+  </div>
+  <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- ── WORK ── -->
+<section id="work">
+  <div class="wrap">
+    <div class="work-sticky-header fade-in">
+      <div class="work-tabs">
+        <button class="work-tab-btn active" data-tab="photo" onclick="switchWork('photo')">Photo</button>
+        <button class="work-tab-btn" data-tab="video" onclick="switchWork('video')">Video</button>
+      </div>
+      <div class="section-subnav" id="subnav-photo">
+        <a href="#sec-portraiture" onclick="scrollToSection('sec-portraiture'); return false;">Portraiture</a>
+        <a href="#sec-product" onclick="scrollToSection('sec-product'); return false;">Product</a>
+        <a href="#sec-food" onclick="scrollToSection('sec-food'); return false;">Food</a>
+        <a href="#sec-moment" onclick="scrollToSection('sec-moment'); return false;">Moment</a>
+        <a href="#sec-personalwork" onclick="scrollToSection('sec-personalwork'); return false;">Personal Work</a>
+      </div>
+      <div class="section-subnav" id="subnav-video" style="display:none">
+        <a href="#acc-cm" onclick="openAccordionAndScroll('acc-cm'); return false;">Commercial</a>
+        <a href="#acc-mv" onclick="openAccordionAndScroll('acc-mv'); return false;">Music Video</a>
+        <a href="#acc-sk" onclick="openAccordionAndScroll('acc-sk'); return false;">Sketch</a>
+      </div>
+    </div>
+
+    <!-- PHOTO PANEL -->
+    <div class="work-panel active" id="wp-photo">
+    <div id="tab-photo">
+
+      <!-- Portraiture -->
+      <div class="photo-section" id="sec-portraiture">
+        <div class="photo-section-label">Portraiture</div>
+        <div class="photo-grid">
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait04.jpg')">
+            <img src="portraiture/portrait04.jpg" alt="Portrait 01">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait05.jpg')">
+            <img src="portraiture/portrait05.jpg" alt="Portrait 02">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait01.jpg')">
+            <img src="portraiture/portrait01.jpg" alt="Portrait 03">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait06.jpg')">
+            <img src="portraiture/portrait06.jpg" alt="Portrait 04">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait07.jpg')">
+            <img src="portraiture/portrait07.jpg" alt="Portrait 05">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait02.jpg')">
+            <img src="portraiture/portrait02.jpg" alt="Portrait 06">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait08.jpg')">
+            <img src="portraiture/portrait08.jpg" alt="Portrait 07">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait09.jpg')">
+            <img src="portraiture/portrait09.jpg" alt="Portrait 08">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait10.jpg')">
+            <img src="portraiture/portrait10.jpg" alt="Portrait 09">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait03.jpg')">
+            <img src="portraiture/portrait03.jpg" alt="Portrait 10">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait11.jpg')">
+            <img src="portraiture/portrait11.jpg" alt="Portrait 11">
+          </div>
+          <div class="photo-item" onclick="openLightbox('portraiture/portrait12.jpg')">
+            <img src="portraiture/portrait12.jpg" alt="Portrait 12">
+          </div>
+        </div>
+      </div>
+
+      <!-- Product -->
+      <div class="photo-section" id="sec-product">
+        <div class="photo-section-label">Product</div>
+        <div class="photo-grid">
+          <div class="photo-item" onclick="openLightbox('Product/product01.jpg')">
+            <img src="Product/product01.jpg" alt="Product 01">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Product/product04.jpg')">
+            <img src="Product/product04.jpg" alt="Product 02">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Product/product05.jpg')">
+            <img src="Product/product05.jpg" alt="Product 03">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Product/product06.jpg')">
+            <img src="Product/product06.jpg" alt="Product 04">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Product/product07.jpg')">
+            <img src="Product/product07.jpg" alt="Product 05">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Product/product02.jpg')">
+            <img src="Product/product02.jpg" alt="Product 06">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Product/product03.jpg')">
+            <img src="Product/product03.jpg" alt="Product 07">
+          </div>
+        </div>
+      </div>
+
+      <!-- Food -->
+      <div class="photo-section" id="sec-food">
+        <div class="photo-section-label">Food</div>
+        <div class="photo-grid">
+          <div class="photo-item" onclick="openLightbox('Food/food01.jpg')">
+            <img src="Food/food01.jpg" alt="Food 01">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Food/food02.jpg')">
+            <img src="Food/food02.jpg" alt="Food 02">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Food/food03.jpg')">
+            <img src="Food/food03.jpg" alt="Food 03">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Food/food04.jpg')">
+            <img src="Food/food04.jpg" alt="Food 04">
+          </div>
+        </div>
+      </div>
+
+      <!-- Moment -->
+      <div class="photo-section" id="sec-moment">
+        <div class="photo-section-label">Moment</div>
+        <div class="photo-grid">
+          <div class="photo-item" onclick="openLightbox('Moment/moment01.jpg')">
+            <img src="Moment/moment01.jpg" alt="Moment 01">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment02.jpg')">
+            <img src="Moment/moment02.jpg" alt="Moment 02">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment03.jpg')">
+            <img src="Moment/moment03.jpg" alt="Moment 03">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment04.jpg')">
+            <img src="Moment/moment04.jpg" alt="Moment 04">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment05.jpg')">
+            <img src="Moment/moment05.jpg" alt="Moment 05">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment06.jpg')">
+            <img src="Moment/moment06.jpg" alt="Moment 06">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment07.jpg')">
+            <img src="Moment/moment07.jpg" alt="Moment 07">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment08.jpg')">
+            <img src="Moment/moment08.jpg" alt="Moment 08">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment09.jpg')">
+            <img src="Moment/moment09.jpg" alt="Moment 09">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment10.jpg')">
+            <img src="Moment/moment10.jpg" alt="Moment 10">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment11.jpg')">
+            <img src="Moment/moment11.jpg" alt="Moment 11">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment12.jpg')">
+            <img src="Moment/moment12.jpg" alt="Moment 12">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Moment/moment13.jpg')">
+            <img src="Moment/moment13.jpg" alt="Moment 13">
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal Work -->
+      <div class="photo-section" id="sec-personalwork">
+        <div class="photo-section-label">Personal Work</div>
+        <div class="photo-grid">
+          <div class="photo-item" onclick="openLightbox('Personal Works/personalwork01.jpg')">
+            <img src="Personal Works/personalwork01.jpg" alt="Personal Work 01">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Personal Works/personalwork02.jpg')">
+            <img src="Personal Works/personalwork02.jpg" alt="Personal Work 02">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Personal Works/personalwork03.jpg')">
+            <img src="Personal Works/personalwork03.jpg" alt="Personal Work 03">
+          </div>
+          <div class="photo-item" onclick="openLightbox('Personal Works/personalwork04.jpg')">
+            <img src="Personal Works/personalwork04.jpg" alt="Personal Work 04">
+          </div>
+        </div>
+      </div>
+
+    </div>
+    </div><!-- /wp-photo -->
+
+    <!-- VIDEO PANEL -->
+    <div class="work-panel" id="wp-video">
+    <div class="accordion">
+
+        <!-- Commercial -->
+        <div class="accordion-item" id="acc-cm">
+          <div class="accordion-header" onclick="toggleAccordion('acc-cm')">
+            <div>
+              <span class="accordion-title">Commercial</span>
+              <span class="accordion-count">09</span>
+            </div>
+            <span class="accordion-arrow">+</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-inner">
+              <div class="video-grid">
+                <a href="https://youtu.be/4QpJ_jw-QKQ" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/4QpJ_jw-QKQ/hqdefault.jpg" alt="Ceramique Brand Film" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Ceramique Brand Film</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/JSI5R_9q5lU" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/JSI5R_9q5lU/hqdefault.jpg" alt="Orion 콰삭칩" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Orion - 콰삭칩 Commercial Film</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/M_5YwRkufH0" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/M_5YwRkufH0/hqdefault.jpg" alt="Centrale De Facade Brand Film" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Centrale De Facade Brand Film</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/twqrmrQyJPg" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/twqrmrQyJPg/hqdefault.jpg" alt="Wedding Video" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Wedding Video</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/BVzIVbQfGjc" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/BVzIVbQfGjc/hqdefault.jpg" alt="HAKUNA LIVE Promo Video" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">HAKUNA LIVE Promo Video</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/AnJjXAG80Oc" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/AnJjXAG80Oc/hqdefault.jpg" alt="리올 인테리어" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">리올 인테리어</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/6IRnnLS1048" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/6IRnnLS1048/hqdefault.jpg" alt="Dr. Ramiche Sunscreen" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Dr. Ramiche Sunscreen</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/4sNspMxUgoA" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/4sNspMxUgoA/hqdefault.jpg" alt="Dr. Ramiche Water Bubble" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Dr. Ramiche Water Bubble</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/b220jlLcvTA" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/b220jlLcvTA/hqdefault.jpg" alt="Dr. Ramiche Cica Cream" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Dr. Ramiche Cica Cream</div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Music Video -->
+        <div class="accordion-item" id="acc-mv">
+          <div class="accordion-header" onclick="toggleAccordion('acc-mv')">
+            <div>
+              <span class="accordion-title">Music Video</span>
+              <span class="accordion-count">05</span>
+            </div>
+            <span class="accordion-arrow">+</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-inner">
+              <div class="video-grid">
+                <a href="https://youtu.be/crKx0wP6vss" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/crKx0wP6vss/hqdefault.jpg" alt="Elliot - Universe" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Elliot - Universe</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/pmMzq4oyT-s" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/pmMzq4oyT-s/hqdefault.jpg" alt="Callmedesign - BoilerPlate" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">Callmedesign - BoilerPlate</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/JceOyfSAftQ" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/JceOyfSAftQ/hqdefault.jpg" alt="QM X ODEE - BULLER" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">QM X ODEE - BULLER</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/b8VWktmjrFE" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/b8VWktmjrFE/hqdefault.jpg" alt="UMBRO - THIS OUR CULTURE: DIAMOND" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">UMBRO - THIS OUR CULTURE: DIAMOND</div>
+                  </div>
+                </a>
+                <a href="https://youtu.be/jex3_DGHl08" target="_blank" class="video-card">
+                  <img src="https://img.youtube.com/vi/jex3_DGHl08/hqdefault.jpg" alt="GABIN Cover Dance" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">GABIN - Chris Brown, Young Thug: City Girls</div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sketch -->
+        <div class="accordion-item" id="acc-sk">
+          <div class="accordion-header" onclick="toggleAccordion('acc-sk')">
+            <div>
+              <span class="accordion-title">Sketch</span>
+              <span class="accordion-count">02</span>
+            </div>
+            <span class="accordion-arrow">+</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-inner">
+              <div class="video-grid" style="display:flex;flex-wrap:wrap;justify-content:center;">
+                <a href="https://drive.google.com/file/d/1L69pqRhTYD9SXLtH_1DLf2nGqWF9OYTm/view" target="_blank" class="video-card" style="width:calc(33.333% - 0.8rem);">
+                  <img src="https://drive.google.com/thumbnail?id=1L69pqRhTYD9SXLtH_1DLf2nGqWF9OYTm&sz=w800" alt="LAPIZ SENSIBLE 룩북" onerror="this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">[ LAPIZ SENSIBLE ] 2024 Lookbook Making Film</div>
+                  </div>
+                </a>
+                <a href="https://www.instagram.com/reel/DV8Oi7ggUQV/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==" target="_blank" class="video-card" style="width:calc(33.333% - 0.8rem);">
+                  <img src="https://img.youtube.com/vi/wB4jX87odgw/hqdefault.jpg" alt="서울마라톤" onerror="this.onerror=null;this.style.display='none'">
+                  <div class="video-overlay">
+                    <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <div class="video-label">서울마라톤</div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /wp-video -->
+
+  </div>
+</section>
+
+<!-- ── SERVICES ── -->
+<section id="services">
+  <div class="wrap">
+    <div class="services-header fade-in">
+      <div>
+        <p class="section-tag">Services</p>
+        <h2 class="section-title">서비스 안내</h2>
+      </div>
+      <p class="services-note">세부 견적은 문의 주시면<br>안내드립니다.</p>
+    </div>
+    <div class="services-grid fade-in">
+
+      <div class="service-card">
+        <p class="service-num">01</p>
+        <p class="service-name">인물 · 포트레이트</p>
+        <div class="pkg-list">
+          <div class="pkg-item">기본 2시간 — 200,000원</div>
+          <div class="pkg-item">보정 2컷 제공</div>
+        </div>
+        <a href="#contact" class="service-link">문의하기</a>
+      </div>
+
+      <div class="service-card">
+        <p class="service-num">02</p>
+        <p class="service-name">룩북 · 패션</p>
+        <div class="pkg-list">
+          <div class="pkg-item">기본 3시간 — 300,000원</div>
+          <div class="pkg-item">하프 6시간 — 500,000원</div>
+          <div class="pkg-item">풀 8시간 — 700,000원</div>
+        </div>
+        <a href="#contact" class="service-link">문의하기</a>
+      </div>
+
+      <div class="service-card">
+        <p class="service-num">03</p>
+        <p class="service-name">제품 촬영</p>
+        <div class="pkg-list">
+          <div class="pkg-item">기본 3시간 — 300,000원</div>
+          <div class="pkg-item">하프 6시간 — 500,000원</div>
+          <div class="pkg-item">풀 8시간 — 700,000원</div>
+        </div>
+        <a href="#contact" class="service-link">문의하기</a>
+      </div>
+
+      <div class="service-card">
+        <p class="service-num">04</p>
+        <p class="service-name">영상 제작</p>
+        <div class="pkg-list">
+          <div class="pkg-item">브랜드 필름, 뮤직비디오,</div>
+          <div class="pkg-item">리캡 등 문의 부탁드립니다.</div>
+        </div>
+        <a href="#contact" class="service-link">문의하기</a>
+      </div>
+
+    </div>
+
+    <div class="services-common fade-in">
+      <div class="services-common-item">헤어메이크업, 스타일리스트, 모델, 외부 스튜디오 대관 비용은 불포함입니다.</div>
+      <div class="services-common-item">보정은 기본 톤보정만 제공됩니다.</div>
+      <div class="services-common-item">서비스 시간에는 헤어메이크업 및 셋팅 시간이 포함됩니다.</div>
+      <div class="services-common-item">기본 제공 보정컷 외 추가 보정은 컷당 30,000원입니다.</div>
+      <div class="services-common-item">추가 합성이 필요한 작업은 별도 문의 부탁드립니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SCHEDULE ── -->
+<section id="schedule">
+  <div class="wrap">
+    <div class="cal-header fade-in">
+      <div>
+        <p class="section-tag" id="scheduleTag">Schedule</p>
+        <h2 class="section-title">촬영 일정</h2>
+        <p class="section-desc">예약 가능한 날짜를 확인하고 문의해 주세요.</p>
+      </div>
+    </div>
+    <div class="fade-in">
+      <div class="cal-nav">
+        <button class="cal-arrow" onclick="calPrev()">←</button>
+        <span class="cal-month-label" id="calMonthLabel"></span>
+        <button class="cal-arrow" onclick="calNext()">→</button>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="cal-grid" id="calGrid">
+          <div class="cal-dow">Sun</div>
+          <div class="cal-dow">Mon</div>
+          <div class="cal-dow">Tue</div>
+          <div class="cal-dow">Wed</div>
+          <div class="cal-dow">Thu</div>
+          <div class="cal-dow">Fri</div>
+          <div class="cal-dow">Sat</div>
+        </div>
+      </div>
+      <div class="cal-legend">
+        <span><span class="leg-dot" style="background:#4d5e3a;"></span>예약됨</span>
+        <span><span class="leg-dot" style="background:#e53935;"></span>조율중</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ABOUT ── -->
+<section id="about">
+  <div class="wrap">
+    <div class="fade-in">
+      <p class="section-tag">About</p>
+      <h2 class="section-title">브랜드와 아티스트의<br>비전을 시각화합니다.</h2>
+      <p class="section-desc">클라이언트의 세계관을 사진과 영상으로 구현합니다.<br>하나의 장면에서 시작되는 이야기, 기록관이 함께합니다.</p>
+      <div class="about-stats">
+        <div>
+          <div class="stat-num">4+</div>
+          <div class="stat-label">Years Active</div>
+        </div>
+        <div>
+          <div class="stat-num">50+</div>
+          <div class="stat-label">Projects</div>
+        </div>
+        <div>
+          <div class="stat-num">Seoul</div>
+          <div class="stat-label">Based</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DIRECTIONS ── -->
+<section id="directions">
+  <div class="wrap">
+    <div class="fade-in">
+      <p class="section-tag">Location</p>
+      <h2 class="section-title">오시는 길</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:start;margin-top:3rem;" class="fade-in">
+      <div>
+        <div style="border-top:1px solid var(--border);">
+          <div style="padding:1.4rem 0;border-bottom:1px solid var(--border);">
+            <div class="c-link-tag" style="margin-bottom:0.4rem;">주소</div>
+            <div style="font-size:0.92rem;line-height:1.7;">서울시 성동구 성수동1가 275-3</div>
+          </div>
+          <div style="padding:1.4rem 0;border-bottom:1px solid var(--border);">
+            <div class="c-link-tag" style="margin-bottom:0.4rem;">대중교통</div>
+            <div style="font-size:0.92rem;line-height:1.7;">성수역 4번 출구에서 도보 15분 이내</div>
+          </div>
+          <div style="padding:1.4rem 0;border-bottom:1px solid var(--border);">
+            <div class="c-link-tag" style="margin-bottom:0.4rem;">주차</div>
+            <div style="font-size:0.92rem;line-height:1.9;">
+              기본 1대 · 추가 주차 시 별도 문의<br>
+              <span style="font-size:0.8rem;color:var(--sub);">추가 주차 — 강변공영주차장 (성수동1가 366-1)<br>3시간 7,200원</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.55rem;margin-top:1.8rem;">
+          <a href="https://map.naver.com/v5/search/서울시+성동구+성수동1가+275-3" target="_blank" style="display:inline-flex;align-items:center;gap:0.65rem;font-size:0.82rem;color:var(--text);text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">
+            <svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0;border-radius:4px;">
+              <rect width="22" height="22" rx="4" fill="#03C75A"/>
+              <path d="M7 15V7h1.8l3.4 5.1V7H14v8h-1.8L8.8 9.9V15H7z" fill="white"/>
+            </svg>
+            네이버지도
+          </a>
+          <a href="https://map.kakao.com/?q=서울시+성동구+성수동1가+275-3" target="_blank" style="display:inline-flex;align-items:center;gap:0.65rem;font-size:0.82rem;color:var(--text);text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">
+            <svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0;border-radius:5px;">
+              <rect width="22" height="22" rx="5" fill="#FEE500"/>
+              <path d="M11 3.5C8.0 3.5 5.5 6.0 5.5 9.1c0 2.1 1.1 3.9 2.8 5.3L11 18.5l2.7-4.1c1.7-1.4 2.8-3.2 2.8-5.3C16.5 6.0 14.0 3.5 11 3.5zm0 7.7c-1.2 0-2.1-1.0-2.1-2.1 0-1.2 1.0-2.1 2.1-2.1 1.2 0 2.1 1.0 2.1 2.1 0 1.2-1.0 2.1-2.1 2.1z" fill="#3A1D00"/>
+            </svg>
+            카카오맵
+          </a>
+          <a href="https://maps.google.com/?q=서울시+성동구+성수동1가+275-3" target="_blank" style="display:inline-flex;align-items:center;gap:0.65rem;font-size:0.82rem;color:var(--text);text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.5" onmouseout="this.style.opacity=1">
+            <svg width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0;border-radius:4px;">
+              <rect width="22" height="22" rx="4" fill="#fff" stroke="#e0e0e0"/>
+              <text x="11" y="15.5" text-anchor="middle" font-size="13" font-weight="700" font-family="sans-serif">
+                <tspan fill="#4285F4">G</tspan>
+              </text>
+            </svg>
+            구글지도
+          </a>
+        </div>
+      </div>
+      <div style="aspect-ratio:1/1;background:var(--card);border:1px solid var(--border);overflow:hidden;">
+        <iframe
+          src="https://maps.google.com/maps?q=서울시+성동구+성수동1가+275-3&output=embed&hl=ko"
+          width="100%" height="100%" style="border:0;display:block;" loading="lazy">
+        </iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="wrap">
+    <div class="fade-in">
+      <p class="section-tag">Contact</p>
+      <h2 class="contact-title">함께<br>작업해요.</h2>
+      <p class="contact-sub">촬영 문의, 견적 요청, 협업 제안 모두 환영합니다.<br>편하게 연락 주세요.</p>
+    </div>
+    <div class="contact-links fade-in">
+
+      <a href="https://instagram.com/girokgwan" target="_blank" class="c-link">
+        <div>
+          <div class="c-link-tag">Instagram</div>
+          <div class="c-link-val">@girokgwan</div>
+        </div>
+        <div class="c-arrow">→</div>
+      </a>
+      <a href="https://pf.kakao.com/_xdlejX/friend" target="_blank" class="c-link">
+        <div>
+          <div class="c-link-tag">Kakao Channel</div>
+          <div class="c-link-val">기록관 카카오 채널</div>
+        </div>
+        <div class="c-arrow">→</div>
+      </a>
+      <p class="contact-info">+82 10-8911-2130 · Seoul, Korea</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <span class="footer-copy">© 2025 기록관 · All rights reserved.</span>
+  <div class="footer-links">
+    <a href="https://instagram.com/girokgwan" target="_blank">Instagram</a>
+    <a href="mailto:omh1247@gmail.com">Email</a>
+  </div>
+</footer>
+
+<script>
+  // Work tab switching + scroll
+  function switchWork(tab) {
+    document.querySelectorAll('.work-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.work-panel').forEach(p => p.classList.toggle('active', p.id === 'wp-' + tab));
+    document.getElementById('subnav-photo').style.display = tab === 'photo' ? '' : 'none';
+    document.getElementById('subnav-video').style.display = tab === 'video' ? '' : 'none';
+    const top = document.getElementById('work').getBoundingClientRect().top + window.scrollY - 62;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  // Nav scroll
+  window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Mobile menu
+  function toggleMenu() {
+    document.getElementById('navLinks').classList.toggle('open');
+  }
+  function closeMenu() {
+    document.getElementById('navLinks').classList.remove('open');
+  }
+
+  // sticky 헤더 + nav 높이
+  function getOffset() {
+    const nav    = document.getElementById('nav');
+    const sticky = document.querySelector('.work-sticky-header');
+    return (nav ? nav.offsetHeight : 62) +
+           (sticky ? sticky.offsetHeight : 0) + 16;
+  }
+
+  // photo 소메뉴 스크롤
+  function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    window.scrollTo({
+      top: el.getBoundingClientRect().top + window.scrollY - getOffset(),
+      behavior: 'smooth'
+    });
+  }
+
+  // video 소메뉴 클릭 — 위에 열린 아코디언 닫힐 때 올라오는 높이를 미리 보정해 한 번에 정확하게 이동
+  function openAccordionAndScroll(id) {
+    const item = document.getElementById(id);
+    if (!item) return;
+    let shift = 0;
+    document.querySelectorAll('.accordion-item.open').forEach(open => {
+      if (open !== item && (open.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+        shift += open.querySelector('.accordion-body').offsetHeight;
+      }
+    });
+    document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+    item.classList.add('open');
+    const header = item.querySelector('.accordion-header');
+    window.scrollTo({
+      top: header.getBoundingClientRect().top + window.scrollY - shift - getOffset(),
+      behavior: 'smooth'
+    });
+  }
+
+  // 아코디언 헤더 직접 클릭
+  function toggleAccordion(id) {
+    const item = document.getElementById(id);
+    const isOpen = item.classList.contains('open');
+    if (isOpen) {
+      document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+      return;
+    }
+    let shift = 0;
+    document.querySelectorAll('.accordion-item.open').forEach(open => {
+      if (open.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        shift += open.querySelector('.accordion-body').offsetHeight;
+      }
+    });
+    document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+    item.classList.add('open');
+    const header = item.querySelector('.accordion-header');
+    window.scrollTo({
+      top: header.getBoundingClientRect().top + window.scrollY - shift - getOffset(),
+      behavior: 'smooth'
+    });
+  }
+
+  // Scroll spy — 현재 보이는 섹션 소제목 강조
+  (function setupScrollSpy() {
+    const PHOTO_IDS = ['sec-portraiture','sec-product','sec-food','sec-moment','sec-personalwork'];
+    const VIDEO_IDS = ['acc-cm','acc-mv','acc-sk'];
+
+    function setActive(subnavId, targetId) {
+      const subnav = document.getElementById(subnavId);
+      if (!subnav) return;
+      subnav.querySelectorAll('a').forEach(a => {
+        const m = (a.getAttribute('onclick') || '').match(/'([^']+)'/);
+        a.classList.toggle('active', !!(m && m[1] === targetId));
+      });
+    }
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const id = entry.target.id;
+        if (PHOTO_IDS.includes(id)) setActive('subnav-photo', id);
+        if (VIDEO_IDS.includes(id))  setActive('subnav-video', id);
+      });
+    }, { rootMargin: '-170px 0px -35% 0px' });
+
+    [...PHOTO_IDS, ...VIDEO_IDS].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+  })();
+
+  // Sticky header 감지 — 고정 시 그림자 + 탭 축소
+  const workStickyHeader = document.querySelector('.work-sticky-header');
+  if (workStickyHeader) {
+    const sentinel = document.createElement('div');
+    sentinel.style.cssText = 'height:1px;margin-bottom:-1px;pointer-events:none;';
+    workStickyHeader.parentElement.insertBefore(sentinel, workStickyHeader);
+    new IntersectionObserver(([entry]) => {
+      workStickyHeader.classList.toggle('is-stuck', !entry.isIntersecting);
+    }, { rootMargin: '-63px 0px 0px 0px' }).observe(sentinel);
+  }
+
+  // Fade in on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Lightbox
+  let lbImages = [], lbIndex = 0;
+
+  function openLightbox(src) {
+    const section = event.currentTarget.closest('.photo-section');
+    lbImages = [...section.querySelectorAll('.photo-item img')].map(i => i.src);
+    lbIndex = lbImages.indexOf(event.currentTarget.querySelector('img').src);
+    showLightboxImg();
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function showLightboxImg() {
+    document.getElementById('lightbox-img').src = lbImages[lbIndex];
+    document.querySelector('.lightbox-prev').style.visibility = lbIndex > 0 ? 'visible' : 'hidden';
+    document.querySelector('.lightbox-next').style.visibility = lbIndex < lbImages.length - 1 ? 'visible' : 'hidden';
+  }
+  function lbPrev(e) { e.stopPropagation(); if (lbIndex > 0) { lbIndex--; showLightboxImg(); } }
+  function lbNext(e) { e.stopPropagation(); if (lbIndex < lbImages.length - 1) { lbIndex++; showLightboxImg(); } }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') { if (lbIndex > 0) { lbIndex--; showLightboxImg(); } }
+    if (e.key === 'ArrowRight') { if (lbIndex < lbImages.length - 1) { lbIndex++; showLightboxImg(); } }
+  });
+</script>
+
+<!-- 날짜 클릭 모달 (일정 조회 + 추가) -->
+<div class="cal-modal-bg" id="addModal">
+  <div class="cal-modal">
+    <h3 id="addModalTitle"></h3>
+    <input type="hidden" id="evDate">
+    <!-- 기존 일정 목록 -->
+    <div class="cal-day-events" id="dayEvList"></div>
+    <!-- 비밀번호 입력 (+ 추가 클릭 시) -->
+    <div id="evPwForm" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+      <input type="password" id="pwInput" placeholder="관리자 비밀번호" onkeydown="if(event.key==='Enter')checkPw()">
+      <p class="cal-err" id="pwErr"></p>
+      <button class="cal-btn-ok" onclick="checkPw()" style="width:100%;margin-top:0.3rem;">확인</button>
+    </div>
+    <!-- 추가 폼 (비밀번호 인증 후) -->
+    <div id="evAddForm" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+      <div style="display:flex;gap:0.3rem;align-items:center;margin-bottom:0.7rem;flex-wrap:wrap;">
+        <select id="evStartHour" style="flex:1;min-width:52px;margin-bottom:0;cursor:pointer;"></select>
+        <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;">시</span>
+        <select id="evStartMin" style="flex:1;min-width:52px;margin-bottom:0;cursor:pointer;"></select>
+        <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;">분</span>
+        <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;padding:0 0.2rem;">~</span>
+        <select id="evEndHour" style="flex:1;min-width:52px;margin-bottom:0;cursor:pointer;"></select>
+        <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;">시</span>
+        <select id="evEndMin" style="flex:1;min-width:52px;margin-bottom:0;cursor:pointer;"></select>
+        <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;">분</span>
+      </div>
+      <input type="text" id="evTitle" placeholder="일정 이름 (예: 인물 촬영)">
+      <select id="evType">
+        <option value="booked">예약됨</option>
+        <option value="hold">조율중</option>
+      </select>
+      <button class="cal-btn-ok" onclick="submitEvent()" style="width:100%;margin-top:0.5rem;">저장</button>
+    </div>
+    <!-- 하단 버튼 -->
+    <div class="cal-modal-btns" style="margin-top:1.2rem;">
+      <button class="cal-btn-cancel" onclick="closeCalModal('addModal')">닫기</button>
+      <button class="cal-btn-ok" id="evAddBtn" onclick="requestAdd()">+ 추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 라이트박스 -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close" onclick="closeLightbox()">×</span>
+  <span class="lightbox-nav lightbox-prev" onclick="lbPrev(event)">‹</span>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+  <span class="lightbox-nav lightbox-next" onclick="lbNext(event)">›</span>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // ─── Firebase 초기화 ───
+  const firebaseConfig = {
+    apiKey: "AIzaSyAsqwmC7EG7WdTtvSNvJ3A9AltdAOVJ_7E",
+    authDomain: "girokgwan-45c3d.firebaseapp.com",
+    projectId: "girokgwan-45c3d",
+    storageBucket: "girokgwan-45c3d.firebasestorage.app",
+    messagingSenderId: "101459034031",
+    appId: "1:101459034031:web:839af145f8380711ec795a"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // ─── 상태 ───
+  let calYear, calMonth, calEvents = {};
+  const ADMIN_PW = 'audgns12'; // ← 비밀번호 변경 시 여기만 수정
+  const isAdmin = () => sessionStorage.getItem('calAdmin') === 'true';
+
+  // ─── 비밀번호 확인 ───
+  function checkPw() {
+    if (document.getElementById('pwInput').value === ADMIN_PW) {
+      sessionStorage.setItem('calAdmin', 'true');
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwErr').textContent = '';
+      document.getElementById('evPwForm').style.display = 'none';
+      showAddForm();
+    } else {
+      document.getElementById('pwErr').textContent = '비밀번호가 틀렸습니다.';
+    }
+  }
+
+  // ─── "+ 추가" 클릭 ───
+  function requestAdd() {
+    if (isAdmin()) {
+      showAddForm();
+    } else {
+      document.getElementById('evPwForm').style.display = 'block';
+      document.getElementById('evAddBtn').style.display = 'none';
+      setTimeout(() => document.getElementById('pwInput').focus(), 50);
+    }
+  }
+
+  function showAddForm() {
+    document.getElementById('evAddForm').style.display = 'block';
+    document.getElementById('evAddBtn').style.display = 'none';
+    document.getElementById('evPwForm').style.display = 'none';
+    renderDayList(document.getElementById('evDate').value);
+  }
+
+  function openCalModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeCalModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  // ─── Firestore 이벤트 로드 ───
+  async function loadEvents() {
+    const snap = await db.collection('events').get();
+    calEvents = {};
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (!calEvents[d.date]) calEvents[d.date] = [];
+      calEvents[d.date].push({ id: doc.id, ...d });
+    });
+    renderCalendar();
+  }
+
+  // ─── 일정 추가 ───
+  async function submitEvent() {
+    const date      = document.getElementById('evDate').value;
+    const title     = document.getElementById('evTitle').value.trim();
+    const type      = document.getElementById('evType').value;
+    const sh = document.getElementById('evStartHour').value;
+    const sm = document.getElementById('evStartMin').value;
+    const eh = document.getElementById('evEndHour').value;
+    const em = document.getElementById('evEndMin').value;
+    const startTime = sh ? `${sh}:${sm}` : '';
+    const endTime   = eh ? `${eh}:${em}` : '';
+    if (!date || !title) return;
+
+    // 시간 유효성 검사
+    if (startTime && endTime && endTime <= startTime) {
+      alert('종료 시간은 시작 시간보다 늦어야 합니다.');
+      return;
+    }
+
+    // 로컬 즉시 반영
+    const tempId = 'tmp_' + Date.now();
+    if (!calEvents[date]) calEvents[date] = [];
+    calEvents[date].push({ id: tempId, date, title, type, startTime, endTime });
+    renderCalendar();
+    closeCalModal('addModal');
+
+    // Firebase 백그라운드 저장
+    try {
+      const ref = await db.collection('events').add({ date, title, type, startTime, endTime });
+      const ev = calEvents[date] && calEvents[date].find(e => e.id === tempId);
+      if (ev) ev.id = ref.id;
+    } catch (e) {
+      await loadEvents(); // 실패 시 서버 상태로 복원
+    }
+  }
+
+  // ─── 일정 삭제 ───
+  async function deleteEvent(id, date) {
+    if (!confirm('이 일정을 삭제하시겠습니까?')) return;
+
+    // 로컬 즉시 반영
+    if (calEvents[date]) {
+      calEvents[date] = calEvents[date].filter(e => e.id !== id);
+      if (!calEvents[date].length) delete calEvents[date];
+    }
+    renderCalendar();
+    renderDayList(date);
+
+    // Firebase 백그라운드 삭제
+    try {
+      await db.collection('events').doc(id).delete();
+    } catch (e) {
+      await loadEvents(); // 실패 시 서버 상태로 복원
+      renderDayList(date);
+    }
+  }
+
+  // ─── 날짜별 기존 일정 목록 ───
+  function formatTime(ev) {
+    if (!ev.startTime) return '';
+    return ev.endTime ? ` ${ev.startTime}~${ev.endTime}` : ` ${ev.startTime}`;
+  }
+
+  function renderDayList(dateStr) {
+    const list = document.getElementById('dayEvList');
+    const dayEvs = calEvents[dateStr] || [];
+    if (!dayEvs.length) { list.innerHTML = '<p style="font-size:0.78rem;color:var(--sub);padding:0.5rem 0;">등록된 일정이 없습니다.</p>'; return; }
+    list.innerHTML = dayEvs.map(ev =>
+      `<div class="cal-ev-row">
+        <span class="cal-event ${ev.type}" style="margin:0;">${ev.title}${formatTime(ev)}</span>
+        ${isAdmin() ? `<button class="cal-ev-del" onclick="deleteEvent('${ev.id}','${dateStr}')">×</button>` : ''}
+      </div>`
+    ).join('');
+  }
+
+  // ─── 날짜 클릭 → 모달 열기 ───
+  function openAddModal(dateStr) {
+    document.getElementById('evDate').value = dateStr;
+    const _days = ['일','월','화','수','목','금','토'];
+    const _dow  = _days[new Date(dateStr).getDay()];
+    document.getElementById('addModalTitle').textContent =
+      dateStr.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1. $2. $3') + ` (${_dow})`;
+    document.getElementById('evPwForm').style.display = 'none';
+    document.getElementById('evAddForm').style.display = 'none';
+    document.getElementById('evAddBtn').style.display = '';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwErr').textContent = '';
+    document.getElementById('evTitle').value = '';
+    ['evStartHour','evStartMin','evEndHour','evEndMin'].forEach(id => document.getElementById(id).selectedIndex = 0);
+    renderDayList(dateStr);
+    openCalModal('addModal');
+  }
+
+  // ─── 캘린더 렌더링 ───
+  // 시/분 옵션 생성
+  function buildHourOptions(id) {
+    const sel = document.getElementById(id);
+    let html = '<option value="">--</option>';
+    for (let h = 0; h < 24; h++)
+      html += `<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`;
+    sel.innerHTML = html;
+  }
+  function buildMinOptions(id) {
+    document.getElementById(id).innerHTML =
+      '<option value="00">00</option><option value="30">30</option>';
+  }
+
+  function initCalendar() {
+    buildHourOptions('evStartHour'); buildMinOptions('evStartMin');
+    buildHourOptions('evEndHour');   buildMinOptions('evEndMin');
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+    renderCalendar();
+    loadEvents();
+  }
+
+  function calPrev() {
+    if (--calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+  }
+  function calNext() {
+    if (++calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    document.getElementById('calMonthLabel').textContent = `${calYear}. ${String(calMonth + 1).padStart(2, '0')}`;
+    const grid = document.getElementById('calGrid');
+    while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+    const today = new Date();
+    const firstDow  = new Date(calYear, calMonth, 1).getDay();
+    const daysInMon = new Date(calYear, calMonth + 1, 0).getDate();
+    const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+    let cells = [];
+    for (let i = firstDow - 1; i >= 0; i--)
+      cells.push({ day: daysInPrev - i, cur: false });
+    for (let d = 1; d <= daysInMon; d++)
+      cells.push({ day: d, cur: true });
+    while (cells.length % 7 !== 0)
+      cells.push({ day: cells.length - daysInMon - firstDow + 1, cur: false });
+
+    const totalRows = cells.length / 7;
+
+    cells.forEach(({ day, cur }, idx) => {
+      const cell = document.createElement('div');
+      const row  = Math.floor(idx / 7);
+      cell.className = 'cal-cell' + (cur ? '' : ' other-month') + (row === totalRows - 1 ? ' row-last' : '');
+
+      const dateEl = document.createElement('div');
+      dateEl.className = 'cal-date';
+      dateEl.textContent = day;
+
+      if (cur) {
+        const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === day;
+        if (isToday) cell.classList.add('today');
+
+        cell.appendChild(dateEl);
+
+        if (calEvents[ds]) {
+          cell.classList.add('has-event');
+          calEvents[ds].forEach(ev => {
+            const evEl = document.createElement('div');
+            evEl.className = `cal-event ${ev.type}`;
+            evEl.textContent = ev.startTime ? `${ev.startTime} ${ev.title}` : ev.title;
+            cell.appendChild(evEl);
+          });
+        }
+
+        cell.style.cursor = 'pointer';
+        cell.addEventListener('click', () => openAddModal(ds));
+      } else {
+        cell.appendChild(dateEl);
+      }
+
+      grid.appendChild(cell);
+    });
+  }
+
+  initCalendar();
+</script>
+
+</body>
+</html>
