@@ -26,3 +26,7 @@
 /bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
 /bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
 /bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
+/bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
+/bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
+/bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
+/bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted

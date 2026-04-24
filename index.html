@@ -881,11 +881,13 @@
       .cal-cell { min-height: 52px; padding: 0.3rem; }
       .cal-event { display: none; }
       .cal-cell.has-event::after {
-        content: '•';
-        font-size: 0.7rem;
+        content: '';
         display: block;
-        color: #555;
-        line-height: 1;
+        position: absolute;
+        bottom: 2px; left: 2px; right: 2px;
+        height: 3px;
+        background: linear-gradient(90deg, #4d5e3a 0%, #e53935 100%);
+        border-radius: 1.5px;
       }
     }
 
@@ -974,11 +976,12 @@
         display: flex;
         flex-direction: column;
         position: fixed;
-        top: 57px; left: 0; right: 0;
-        background: rgba(255,255,255,0.97);
+        top: 57px; right: 0; width: 80%;
+        background: rgba(255,255,255,0.98);
         padding: 2rem 1.5rem;
         gap: 1.5rem;
         border-bottom: 1px solid var(--border);
+        box-shadow: -6px 12px 36px rgba(0,0,0,0.15);
         z-index: 99;
       }
 
@@ -986,7 +989,7 @@
       #hero { padding: 60px 1.5rem 3rem; }
       .hero-content { grid-template-columns: 1fr; }
       .hero-text { align-items: flex-start; padding: 2rem 0 1rem; }
-      .hero-photo { display: none; }
+      .hero-photo { display: block; margin-top: 1.5rem; }
       .hero-scroll { display: none; }
       .hero-title { font-size: clamp(3.5rem, 18vw, 6rem); }
 
@@ -1079,7 +1082,7 @@
 
 <!-- ── NAV ── -->
 <nav id="nav">
-  <a class="nav-logo" href="#hero" style="margin-bottom:10px;"><img src="logo.png/logo-text.png" alt="기록관" style="height:18px;width:auto;display:block;"></a>
+  <a class="nav-logo" href="#hero" style="margin-bottom:10px;"><img loading="lazy" decoding="async" src="logo.png/logo-text.png" alt="기록관" style="height:18px;width:auto;display:block;"></a>
   <ul class="nav-links" id="navLinks">
     <li><a href="#about" onclick="closeMenu()">About</a></li>
     <li><a href="#work" onclick="switchWork('photo'); closeMenu(); return false;">Photo</a></li>
@@ -1099,12 +1102,12 @@
     <div class="hero-text">
       <p class="hero-label">Seoul, Korea · Since 2025</p>
       <div style="margin-bottom:3px;">
-        <img src="logo.png/logo-full.png" alt="기록관" style="height:auto;width:100%;max-width:240px;display:block;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;margin-top:-22px;margin-bottom:-22px;">
+        <img loading="lazy" decoding="async" src="logo.png/logo-full.png" alt="기록관" style="height:auto;width:100%;max-width:240px;display:block;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;margin-top:-22px;margin-bottom:-22px;">
       </div>
       <p class="hero-sub">순간의 감정과 이야기를 기록합니다</p>
     </div>
     <div class="hero-photo">
-      <img src="Moment/moment01.jpg" alt="기록관 포트폴리오">
+      <img loading="lazy" decoding="async" src="Moment/moment01.jpg" alt="기록관 포트폴리오">
     </div>
   </div>
   <div class="hero-scroll">Scroll</div>
@@ -1141,40 +1144,40 @@
         <div class="photo-section-label">Portraiture</div>
         <div class="photo-grid">
           <div class="photo-item" onclick="openLightbox('portraiture/portrait04.jpg')">
-            <img src="portraiture/portrait04.jpg" alt="Portrait 01" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait04.jpg" alt="Portrait 01" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait05.jpg')">
-            <img src="portraiture/portrait05.jpg" alt="Portrait 02" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait05.jpg" alt="Portrait 02" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait01.jpg')">
-            <img src="portraiture/portrait01.jpg" alt="Portrait 03" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait01.jpg" alt="Portrait 03" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait06.jpg')">
-            <img src="portraiture/portrait06.jpg" alt="Portrait 04" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait06.jpg" alt="Portrait 04" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait07.jpg')">
-            <img src="portraiture/portrait07.jpg" alt="Portrait 05" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait07.jpg" alt="Portrait 05" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait02.jpg')">
-            <img src="portraiture/portrait02.jpg" alt="Portrait 06" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait02.jpg" alt="Portrait 06" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait08.jpg')">
-            <img src="portraiture/portrait08.jpg" alt="Portrait 07" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait08.jpg" alt="Portrait 07" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait09.jpg')">
-            <img src="portraiture/portrait09.jpg" alt="Portrait 08" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait09.jpg" alt="Portrait 08" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait10.jpg')">
-            <img src="portraiture/portrait10.jpg" alt="Portrait 09" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait10.jpg" alt="Portrait 09" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait03.jpg')">
-            <img src="portraiture/portrait03.jpg" alt="Portrait 10" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait03.jpg" alt="Portrait 10" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait11.jpg')">
-            <img src="portraiture/portrait11.jpg" alt="Portrait 11" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait11.jpg" alt="Portrait 11" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('portraiture/portrait12.jpg')">
-            <img src="portraiture/portrait12.jpg" alt="Portrait 12" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="portraiture/portrait12.jpg" alt="Portrait 12" onerror="removePhotoItem(this)">
           </div>
         </div>
       </div>
@@ -1184,31 +1187,31 @@
         <div class="photo-section-label">Product</div>
         <div class="photo-grid">
           <div class="photo-item" onclick="openLightbox('Product/product01.jpg')">
-            <img src="Product/product01.jpg" alt="Product 01" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product01.jpg" alt="Product 01" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Product/product02.jpg')">
-            <img src="Product/product02.jpg" alt="Product 02" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product02.jpg" alt="Product 02" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Product/product03.jpg')">
-            <img src="Product/product03.jpg" alt="Product 03" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product03.jpg" alt="Product 03" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Product/product04.jpg')">
-            <img src="Product/product04.jpg" alt="Product 04" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product04.jpg" alt="Product 04" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Product/product05.jpg')">
-            <img src="Product/product05.jpg" alt="Product 05" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product05.jpg" alt="Product 05" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Product/product06.jpg')">
-            <img src="Product/product06.jpg" alt="Product 06" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product06.jpg" alt="Product 06" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Product/product07.jpg')">
-            <img src="Product/product07.jpg" alt="Product 07" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product07.jpg" alt="Product 07" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Product/product08.jpg')">
-            <img src="Product/product08.jpg" alt="Product 08" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product08.jpg" alt="Product 08" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Product/product09.jpg')">
-            <img src="Product/product09.jpg" alt="Product 09" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Product/product09.jpg" alt="Product 09" onerror="removePhotoItem(this)">
           </div>
         </div>
       </div>
@@ -1218,16 +1221,16 @@
         <div class="photo-section-label">Food</div>
         <div class="photo-grid">
           <div class="photo-item" onclick="openLightbox('Food/food01.jpg')">
-            <img src="Food/food01.jpg" alt="Food 01" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Food/food01.jpg" alt="Food 01" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Food/food02.jpg')">
-            <img src="Food/food02.jpg" alt="Food 02" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Food/food02.jpg" alt="Food 02" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Food/food03.jpg')">
-            <img src="Food/food03.jpg" alt="Food 03" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Food/food03.jpg" alt="Food 03" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Food/food04.jpg')">
-            <img src="Food/food04.jpg" alt="Food 04" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Food/food04.jpg" alt="Food 04" onerror="removePhotoItem(this)">
           </div>
         </div>
       </div>
@@ -1237,43 +1240,43 @@
         <div class="photo-section-label">Moment</div>
         <div class="photo-grid">
           <div class="photo-item" onclick="openLightbox('Moment/moment01.jpg')">
-            <img src="Moment/moment01.jpg" alt="Moment 01" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment01.jpg" alt="Moment 01" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment02.jpg')">
-            <img src="Moment/moment02.jpg" alt="Moment 02" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment02.jpg" alt="Moment 02" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment03.jpg')">
-            <img src="Moment/moment03.jpg" alt="Moment 03" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment03.jpg" alt="Moment 03" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment04.jpg')">
-            <img src="Moment/moment04.jpg" alt="Moment 04" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment04.jpg" alt="Moment 04" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment05.jpg')">
-            <img src="Moment/moment05.jpg" alt="Moment 05" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment05.jpg" alt="Moment 05" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment06.jpg')">
-            <img src="Moment/moment06.jpg" alt="Moment 06" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment06.jpg" alt="Moment 06" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment07.jpg')">
-            <img src="Moment/moment07.jpg" alt="Moment 07" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment07.jpg" alt="Moment 07" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment08.jpg')">
-            <img src="Moment/moment08.jpg" alt="Moment 08" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment08.jpg" alt="Moment 08" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment09.jpg')">
-            <img src="Moment/moment09.jpg" alt="Moment 09" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment09.jpg" alt="Moment 09" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment10.jpg')">
-            <img src="Moment/moment10.jpg" alt="Moment 10" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment10.jpg" alt="Moment 10" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment11.jpg')">
-            <img src="Moment/moment11.jpg" alt="Moment 11" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment11.jpg" alt="Moment 11" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment12.jpg')">
-            <img src="Moment/moment12.jpg" alt="Moment 12" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment12.jpg" alt="Moment 12" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Moment/moment13.jpg')">
-            <img src="Moment/moment13.jpg" alt="Moment 13" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Moment/moment13.jpg" alt="Moment 13" onerror="removePhotoItem(this)">
           </div>
         </div>
       </div>
@@ -1283,10 +1286,10 @@
         <div class="photo-section-label">Personal Work</div>
         <div class="photo-grid">
           <div class="photo-item" onclick="openLightbox('Personal Works/personalwork01.jpg')">
-            <img src="Personal Works/personalwork01.jpg" alt="Personal Work 01" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Personal Works/personalwork01.jpg" alt="Personal Work 01" onerror="removePhotoItem(this)">
           </div>
           <div class="photo-item" onclick="openLightbox('Personal Works/personalwork02.jpg')">
-            <img src="Personal Works/personalwork02.jpg" alt="Personal Work 02" onerror="removePhotoItem(this)">
+            <img loading="lazy" decoding="async" src="Personal Works/personalwork02.jpg" alt="Personal Work 02" onerror="removePhotoItem(this)">
           </div>
         </div>
       </div>
@@ -1311,63 +1314,63 @@
             <div class="accordion-inner">
               <div class="video-grid">
                 <a href="https://youtu.be/4QpJ_jw-QKQ" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/4QpJ_jw-QKQ/hqdefault.jpg" alt="Ceramique Brand Film" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/4QpJ_jw-QKQ/hqdefault.jpg" alt="Ceramique Brand Film" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Ceramique Brand Film</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/JSI5R_9q5lU" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/JSI5R_9q5lU/hqdefault.jpg" alt="Orion 콰삭칩" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/JSI5R_9q5lU/hqdefault.jpg" alt="Orion 콰삭칩" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Orion - 콰삭칩 Commercial Film</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/M_5YwRkufH0" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/M_5YwRkufH0/hqdefault.jpg" alt="Centrale De Facade Brand Film" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/M_5YwRkufH0/hqdefault.jpg" alt="Centrale De Facade Brand Film" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Centrale De Facade Brand Film</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/twqrmrQyJPg" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/twqrmrQyJPg/hqdefault.jpg" alt="Wedding Video" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/twqrmrQyJPg/hqdefault.jpg" alt="Wedding Video" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Wedding Video</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/BVzIVbQfGjc" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/BVzIVbQfGjc/hqdefault.jpg" alt="HAKUNA LIVE Promo Video" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/BVzIVbQfGjc/hqdefault.jpg" alt="HAKUNA LIVE Promo Video" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">HAKUNA LIVE Promo Video</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/AnJjXAG80Oc" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/AnJjXAG80Oc/hqdefault.jpg" alt="리올 인테리어" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/AnJjXAG80Oc/hqdefault.jpg" alt="리올 인테리어" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">리올 인테리어</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/6IRnnLS1048" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/6IRnnLS1048/hqdefault.jpg" alt="Dr. Ramiche Sunscreen" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/6IRnnLS1048/hqdefault.jpg" alt="Dr. Ramiche Sunscreen" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Dr. Ramiche Sunscreen</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/4sNspMxUgoA" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/4sNspMxUgoA/hqdefault.jpg" alt="Dr. Ramiche Water Bubble" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/4sNspMxUgoA/hqdefault.jpg" alt="Dr. Ramiche Water Bubble" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Dr. Ramiche Water Bubble</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/b220jlLcvTA" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/b220jlLcvTA/hqdefault.jpg" alt="Dr. Ramiche Cica Cream" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/b220jlLcvTA/hqdefault.jpg" alt="Dr. Ramiche Cica Cream" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Dr. Ramiche Cica Cream</div>
@@ -1391,35 +1394,35 @@
             <div class="accordion-inner">
               <div class="video-grid">
                 <a href="https://youtu.be/crKx0wP6vss" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/crKx0wP6vss/hqdefault.jpg" alt="Elliot - Universe" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/crKx0wP6vss/hqdefault.jpg" alt="Elliot - Universe" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Elliot - Universe</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/pmMzq4oyT-s" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/pmMzq4oyT-s/hqdefault.jpg" alt="Callmedesign - BoilerPlate" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/pmMzq4oyT-s/hqdefault.jpg" alt="Callmedesign - BoilerPlate" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">Callmedesign - BoilerPlate</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/JceOyfSAftQ" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/JceOyfSAftQ/hqdefault.jpg" alt="QM X ODEE - BULLER" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/JceOyfSAftQ/hqdefault.jpg" alt="QM X ODEE - BULLER" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">QM X ODEE - BULLER</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/b8VWktmjrFE" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/b8VWktmjrFE/hqdefault.jpg" alt="UMBRO - THIS OUR CULTURE: DIAMOND" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/b8VWktmjrFE/hqdefault.jpg" alt="UMBRO - THIS OUR CULTURE: DIAMOND" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">UMBRO - THIS OUR CULTURE: DIAMOND</div>
                   </div>
                 </a>
                 <a href="https://youtu.be/jex3_DGHl08" target="_blank" class="video-card">
-                  <img src="https://img.youtube.com/vi/jex3_DGHl08/hqdefault.jpg" alt="GABIN Cover Dance" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/jex3_DGHl08/hqdefault.jpg" alt="GABIN Cover Dance" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">GABIN - Chris Brown, Young Thug: City Girls</div>
@@ -1443,14 +1446,14 @@
             <div class="accordion-inner">
               <div class="video-grid" style="display:flex;flex-wrap:wrap;justify-content:center;">
                 <a href="https://drive.google.com/file/d/1L69pqRhTYD9SXLtH_1DLf2nGqWF9OYTm/view" target="_blank" class="video-card" style="width:calc(33.333% - 0.8rem);">
-                  <img src="https://drive.google.com/thumbnail?id=1L69pqRhTYD9SXLtH_1DLf2nGqWF9OYTm&sz=w800" alt="LAPIZ SENSIBLE 룩북" onerror="this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://drive.google.com/thumbnail?id=1L69pqRhTYD9SXLtH_1DLf2nGqWF9OYTm&sz=w800" alt="LAPIZ SENSIBLE 룩북" onerror="this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">[ LAPIZ SENSIBLE ] 2024 Lookbook Making Film</div>
                   </div>
                 </a>
                 <a href="https://www.instagram.com/reel/DV8Oi7ggUQV/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==" target="_blank" class="video-card" style="width:calc(33.333% - 0.8rem);">
-                  <img src="https://img.youtube.com/vi/wB4jX87odgw/hqdefault.jpg" alt="서울마라톤" onerror="this.onerror=null;this.style.display='none'">
+                  <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/wB4jX87odgw/hqdefault.jpg" alt="서울마라톤" onerror="this.onerror=null;this.style.display='none'">
                   <div class="video-overlay">
                     <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
                     <div class="video-label">서울마라톤</div>
@@ -1937,8 +1940,7 @@
   let calYear, calMonth, calEvents = {};
   const ADMIN_PW = 'audgns12'; // ← 비밀번호 변경 시 여기만 수정
   const isAdmin = () => sessionStorage.getItem('calAdmin') === 'true';
-
-  // ─── 비밀번호 확인 ───
+    const editingEventId = null;  // 수정 중인 이벤트 ID
   function checkPw() {
     if (document.getElementById('pwInput').value === ADMIN_PW) {
       sessionStorage.setItem('calAdmin', 'true');

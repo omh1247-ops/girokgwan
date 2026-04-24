@@ -1,5 +1,5 @@
 #!/bin/bash
-# 사진 폴더에 파일이 추가되면 자동으로 다음 번호로 이름 변경
+# 사진 폴더에 파일이 추가되면 자동으로 다음 번호로 이름 변경 + 크기 표준화
 
 BASE="/Users/ommyunghun/Documents/GitHub/girokgwan"
 
@@ -39,3 +39,7 @@ rename_folder "Product"        "product"
 rename_folder "Food"           "food"
 rename_folder "Moment"         "moment"
 rename_folder "Personal Works" "personalwork"
+
+# 모든 폴더 크기 표준화
+echo "📐 사진 크기 표준화 중..." >> "$BASE/scripts/rename-log.txt"
+python3 "$BASE/scripts/standardize-sizes.py" >> "$BASE/scripts/rename-log.txt" 2>&1
