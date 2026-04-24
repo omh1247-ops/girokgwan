@@ -287,32 +287,47 @@
       margin-bottom: 1rem;
     }
     .photo-grid {
-      columns: 3;
-      column-gap: 5px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 2px;
+      grid-auto-rows: auto;
     }
     .photo-item {
-      background: var(--card);
-      overflow: visible;
+      background: transparent;
+      overflow: hidden;
       cursor: pointer;
       position: relative;
-      break-inside: avoid;
-      margin-bottom: 3px;
       z-index: 0;
       transition: transform 0.4s ease, box-shadow 0.4s ease;
+      border-radius: 8px;
     }
+    /* 일부 사진을 더 크게 (masonry 효과) - span 제거 */
+    .photo-item:nth-child(5n+1) { grid-column: span 2; }
+    .photo-item:nth-child(7n+3) { grid-column: span 1; }
     .photo-item img {
       width: 100%;
       height: auto;
+      object-fit: contain;
+      object-position: center;
       display: block;
+      background: transparent;
+      border-radius: 8px;
       transition: filter 0.4s ease;
     }
-    .photo-item:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 0 1.5px rgba(255,255,255,0.9), 0 30px 80px rgba(0,0,0,0.5);
-      z-index: 10;
+    /* PC에서만 호버 효과 */
+    @media (min-width: 901px) {
+      .photo-item:hover {
+        transform: scale(1.03);
+        box-shadow: 0 0 0 1.5px rgba(255,255,255,0.9), 0 30px 80px rgba(0,0,0,0.5);
+        z-index: 10;
+      }
+      .photo-grid:hover .photo-item img { filter: grayscale(100%); opacity: 0.6; }
+      .photo-grid:hover .photo-item:hover img { filter: grayscale(0%); opacity: 1; }
     }
-    .photo-grid:hover .photo-item img { filter: grayscale(100%); opacity: 0.6; }
-    .photo-grid:hover .photo-item:hover img { filter: grayscale(0%); opacity: 1; }
+    /* 모바일에서는 호버 효과 없음 */
+    @media (max-width: 900px) {
+      .photo-item img { width: 100%; height: 100%; object-fit: contain; }
+    }
     .photo-section-empty {
       padding: 2.5rem 0;
       color: var(--sub);
@@ -992,6 +1007,23 @@
       .hero-photo { display: block; margin-top: 1.5rem; }
       .hero-scroll { display: none; }
       .hero-title { font-size: clamp(3.5rem, 18vw, 6rem); }
+
+      /* 모바일 사진 그리드 최적화 */
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2px;
+        grid-auto-rows: auto;
+      }
+      .photo-item {
+        border-radius: 6px;
+      }
+      /* 모바일에서는 모두 균등 */
+      .photo-item:nth-child(5n+1) { grid-column: span 1; }
+      .photo-item:nth-child(7n+3) { grid-column: span 1; }
+      .photo-item img {
+        border-radius: 6px;
+      }
 
       /* Sections */
       .wrap { padding: 4rem 1.5rem; }
@@ -1806,6 +1838,18 @@
     [...PHOTO_IDS, ...VIDEO_IDS].forEach(id => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
+    });
+  })();
+
+  // 사진 배열 랜덤 섞기 (Masonry 스타일)
+  (function randomizePhotoOrder() {
+    document.querySelectorAll('.photo-grid').forEach(grid => {
+      const items = Array.from(grid.querySelectorAll('.photo-item'));
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      items.forEach(item => grid.appendChild(item));
     });
   })();
 
