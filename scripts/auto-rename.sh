@@ -1,7 +1,7 @@
 #!/bin/bash
 # 사진 폴더에 파일이 추가되면 자동으로 다음 번호로 이름 변경
 
-BASE="/Users/ommyunghun/Desktop/기록관/홈페이지"
+BASE="/Users/ommyunghun/Documents/GitHub/girokgwan"
 
 rename_folder() {
   local folder="$1"

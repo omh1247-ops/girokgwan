@@ -1,0 +1,6 @@
+/bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
+/bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
+2026-04-24 21:45:18 이름 변경: personalwork03.jpg → product08.jpg
+2026-04-24 21:45:18 이름 변경: personalwork04.jpg → product09.jpg
+/bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
+/bin/bash: /Users/ommyunghun/Documents/GitHub/girokgwan/scripts/auto-rename.sh: Operation not permitted
