@@ -823,8 +823,8 @@
     <div id="evAddForm" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
       <!-- All Day 버튼 -->
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
-        <input type="checkbox" id="allDayCheck" onchange="toggleAllDay()" style="width:18px;height:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;accent-color:var(--text);">
-        <label for="allDayCheck" style="font-size:0.85rem;cursor:pointer;user-select:none;font-weight:500;">allday</label>
+        <input type="checkbox" id="allDayCheck" onchange="toggleAllDay()" style="width:20px;height:20px;cursor:pointer;accent-color:var(--text);">
+        <label for="allDayCheck" style="font-size:0.85rem;cursor:pointer;user-select:none;font-weight:600;">All Day</label>
       </div>
       <!-- 시간 입력 -->
       <div id="timeInputs" style="display:flex;gap:0.3rem;align-items:center;margin-bottom:0.7rem;flex-wrap:wrap;">
@@ -843,7 +843,7 @@
         <option value="booked">예약됨</option>
         <option value="hold">조율중</option>
       </select>
-      <button class="cal-btn-ok" onclick="submitEvent()" style="width:100%;margin-top:0.5rem;">저장</button>
+      <button class="cal-btn-ok" id="evSubmitBtn" onclick="submitEvent()" style="width:100%;margin-top:0.5rem;">저장</button>
     </div>
     <!-- 하단 버튼 -->
     <div class="cal-modal-btns" style="margin-top:1.2rem;">
@@ -924,16 +924,47 @@
     toggleAllDay();
   }
 
-  // ─── localStorage 이벤트 로드 ───
-  function loadEvents() {
+  // ─── 저장 버튼 초기화 ───
+  function resetSubmitBtn() {
+    const submitBtn = document.getElementById('evSubmitBtn');
+    if (submitBtn) {
+      submitBtn.onclick = submitEvent;
+      submitBtn.textContent = '저장';
+    }
+  }
+
+  // ─── Firebase + localStorage 이벤트 로드 ───
+  async function loadEvents() {
+    // 1단계: localStorage 먼저 복구 (즉시 표시)
     const backup = localStorage.getItem('calEventsBackup');
-    console.log('📦 localStorage 데이터 로드:', backup ? JSON.parse(backup) : '없음');
+    console.log('📦 localStorage 데이터:', backup ? JSON.parse(backup) : '없음');
     if (backup) {
       calEvents = JSON.parse(backup);
       console.log('✅ localStorage에서 복구됨:', calEvents);
       renderCalendar();
-    } else {
-      console.log('✅ 새로운 캘린더 시작');
+    }
+
+    // 2단계: Firebase에서 최신 데이터 동기화 (백그라운드)
+    try {
+      const snap = await db.collection('events').get();
+      if (snap.empty) {
+        console.log('✅ Firebase 연결 성공, 데이터 없음');
+        return;
+      }
+      
+      let firebaseEvents = {};
+      snap.forEach(doc => {
+        const d = doc.data();
+        if (!firebaseEvents[d.date]) firebaseEvents[d.date] = [];
+        firebaseEvents[d.date].push({ id: doc.id, ...d });
+      });
+      
+      calEvents = firebaseEvents;
+      console.log('🔄 Firebase에서 동기화됨:', calEvents);
+      localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
+      renderCalendar();
+    } catch(e) {
+      console.log('⚠️ Firebase 연결 실패:', e.message, '→ 로컬 데이터 사용');
     }
   }
 
@@ -976,12 +1007,126 @@
     // 로컬 즉시 반영
     const tempId = 'tmp_' + Date.now();
     if (!calEvents[date]) calEvents[date] = [];
-    calEvents[date].push({ id: tempId, date, title, type, startTime, endTime });
+    const newEvent = { id: tempId, date, title, type, startTime, endTime };
+    calEvents[date].push(newEvent);
     localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
-    console.log('✅ localStorage에 저장됨:', calEvents);
+    console.log('✅ localStorage에 저장됨:', newEvent);
     renderCalendar();
     closeCalModal('addModal');
     clearAddForm();
+
+    // Firebase 백그라운드 저장
+    (async () => {
+      try {
+        const ref = await db.collection('events').add({ date, title, type, startTime, endTime });
+        const ev = calEvents[date]?.find(e => e.id === tempId);
+        if (ev) ev.id = ref.id;
+        localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
+        console.log('✅ Firebase에 저장됨, ID:', ref.id);
+      } catch (e) {
+        console.log('⚠️ Firebase 저장 실패:', e.message, '→ 로컬만 유지');
+      }
+    })();
+  }
+
+  // ─── 일정 수정 ───
+  function editEvent(id, date) {
+    const ev = calEvents[date]?.find(e => e.id === id);
+    if (!ev) return;
+
+    // 폼에 데이터 로드
+    document.getElementById('evDate').value = date;
+    document.getElementById('evTitle').value = ev.title;
+    document.getElementById('evType').value = ev.type;
+    
+    const isAllDay = !ev.startTime;
+    document.getElementById('allDayCheck').checked = isAllDay;
+    toggleAllDay();
+
+    if (ev.startTime) {
+      const [sh, sm] = ev.startTime.split(':');
+      document.getElementById('evStartHour').value = sh;
+      document.getElementById('evStartMin').value = sm;
+    }
+    if (ev.endTime) {
+      const [eh, em] = ev.endTime.split(':');
+      document.getElementById('evEndHour').value = eh;
+      document.getElementById('evEndMin').value = em;
+    }
+
+    // 모달 제목 업데이트
+    const _days = ['일','월','화','수','목','금','토'];
+    const _dow  = _days[new Date(date).getDay()];
+    document.getElementById('addModalTitle').textContent = 
+      `${date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1. $2. $3')} (${_dow}) - 수정`;
+
+    // 저장 버튼을 "수정" 버튼으로 변경
+    const submitBtn = document.getElementById('evSubmitBtn');
+    if (submitBtn) {
+      submitBtn.onclick = () => updateEvent(id, date);
+      submitBtn.textContent = '수정';
+    }
+
+    document.getElementById('evPwForm').style.display = 'none';
+    document.getElementById('evAddForm').style.display = 'block';
+    document.getElementById('evAddBtn').style.display = 'none';
+    openCalModal('addModal');
+  }
+
+  // ─── 일정 업데이트 ───
+  function updateEvent(id, date) {
+    const newTitle     = document.getElementById('evTitle').value.trim();
+    const newType      = document.getElementById('evType').value;
+    const isAllDay     = document.getElementById('allDayCheck').checked;
+    let newStartTime = '';
+    let newEndTime = '';
+    
+    if (!isAllDay) {
+      const sh = document.getElementById('evStartHour').value;
+      const sm = document.getElementById('evStartMin').value;
+      const eh = document.getElementById('evEndHour').value;
+      const em = document.getElementById('evEndMin').value;
+      newStartTime = sh ? `${sh}:${sm}` : '';
+      newEndTime   = eh ? `${eh}:${em}` : '';
+    }
+    
+    if (!newTitle) return;
+
+    if (newStartTime && newEndTime && newEndTime <= newStartTime) {
+      alert('종료 시간은 시작 시간보다 늦어야 합니다.');
+      return;
+    }
+
+    // 기존 이벤트 제거
+    if (calEvents[date]) {
+      const idx = calEvents[date].findIndex(e => e.id === id);
+      if (idx !== -1) {
+        calEvents[date][idx] = {
+          id, date, title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime
+        };
+      }
+    }
+
+    localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
+    console.log('✅ localStorage에서 수정됨:', calEvents);
+    renderCalendar();
+    closeCalModal('addModal');
+    clearAddForm();
+    resetSubmitBtn();
+
+    // Firebase 백그라운드 업데이트
+    (async () => {
+      try {
+        if (!id.startsWith('tmp_')) {
+          await db.collection('events').doc(id).update({
+            title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime
+          });
+          console.log('✅ Firebase에서 수정됨, ID:', id);
+        }
+      } catch (e) {
+        console.log('⚠️ Firebase 업데이트 실패:', e.message, '→ 로컬만 유지');
+      }
+    })();
   }
 
   // ─── 일정 삭제 ───
@@ -997,6 +1142,20 @@
     console.log('✅ localStorage에서 삭제됨:', calEvents);
     renderCalendar();
     renderDayList(date);
+
+    // Firebase 백그라운드 삭제
+    (async () => {
+      try {
+        if (!id.startsWith('tmp_')) {
+          await db.collection('events').doc(id).delete();
+          console.log('✅ Firebase에서 삭제됨, ID:', id);
+        } else {
+          console.log('⏭️ 임시 ID이므로 Firebase 삭제 스킵');
+        }
+      } catch (e) {
+        console.log('⚠️ Firebase 삭제 실패:', e.message, '→ 로컬만 유지');
+      }
+    })();
   }
 
   // ─── 날짜별 기존 일정 목록 ───
@@ -1012,6 +1171,7 @@
     list.innerHTML = dayEvs.map(ev =>
       `<div class="cal-ev-row">
         <span class="cal-event ${ev.type}" style="margin:0;">${ev.title}${formatTime(ev)}</span>
+        ${isAdmin() ? `<button class="cal-ev-del" onclick="editEvent('${ev.id}','${dateStr}')">✎</button>` : ''}
         ${isAdmin() ? `<button class="cal-ev-del" onclick="deleteEvent('${ev.id}','${dateStr}')">×</button>` : ''}
       </div>`
     ).join('');
