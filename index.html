@@ -916,22 +916,25 @@
   function openCalModal(id) { document.getElementById(id).classList.add('open'); }
   function closeCalModal(id) { document.getElementById(id).classList.remove('open'); }
 
-  // ─── Firestore 이벤트 로드 + localStorage 백업 ───
-  async function loadEvents() {
-    try {
-      const snap = await db.collection('events').get();
-      calEvents = {};
-      snap.forEach(doc => {
-        const d = doc.data();
-        if (!calEvents[d.date]) calEvents[d.date] = [];
-        calEvents[d.date].push({ id: doc.id, ...d });
-      });
-      localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
-    } catch(e) {
-      const backup = localStorage.getItem('calEventsBackup');
-      if (backup) calEvents = JSON.parse(backup);
+  // ─── 폼 초기화 ───
+  function clearAddForm() {
+    document.getElementById('evTitle').value = '';
+    document.getElementById('allDayCheck').checked = false;
+    ['evStartHour','evStartMin','evEndHour','evEndMin'].forEach(id => document.getElementById(id).selectedIndex = 0);
+    toggleAllDay();
+  }
+
+  // ─── localStorage 이벤트 로드 ───
+  function loadEvents() {
+    const backup = localStorage.getItem('calEventsBackup');
+    console.log('📦 localStorage 데이터 로드:', backup ? JSON.parse(backup) : '없음');
+    if (backup) {
+      calEvents = JSON.parse(backup);
+      console.log('✅ localStorage에서 복구됨:', calEvents);
+      renderCalendar();
+    } else {
+      console.log('✅ 새로운 캘린더 시작');
     }
-    renderCalendar();
   }
 
   // ─── All Day 토글 ───
@@ -975,22 +978,14 @@
     if (!calEvents[date]) calEvents[date] = [];
     calEvents[date].push({ id: tempId, date, title, type, startTime, endTime });
     localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
+    console.log('✅ localStorage에 저장됨:', calEvents);
     renderCalendar();
     closeCalModal('addModal');
-
-    // Firebase 백그라운드 저장
-    try {
-      const ref = await db.collection('events').add({ date, title, type, startTime, endTime });
-      const ev = calEvents[date] && calEvents[date].find(e => e.id === tempId);
-      if (ev) ev.id = ref.id;
-      localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
-    } catch (e) {
-      await loadEvents();
-    }
+    clearAddForm();
   }
 
   // ─── 일정 삭제 ───
-  async function deleteEvent(id, date) {
+  function deleteEvent(id, date) {
     if (!confirm('이 일정을 삭제하시겠습니까?')) return;
 
     // 로컬 즉시 반영
@@ -999,17 +994,9 @@
       if (!calEvents[date].length) delete calEvents[date];
     }
     localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
+    console.log('✅ localStorage에서 삭제됨:', calEvents);
     renderCalendar();
     renderDayList(date);
-
-    // Firebase 백그라운드 삭제
-    try {
-      await db.collection('events').doc(id).delete();
-      localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
-    } catch (e) {
-      await loadEvents();
-      renderDayList(date);
-    }
   }
 
   // ─── 날짜별 기존 일정 목록 ───
@@ -1084,6 +1071,8 @@
   }
 
   function renderCalendar() {
+    console.log(`📅 renderCalendar 호출: ${calYear}-${String(calMonth+1).padStart(2,'0')}`);
+    console.log('📊 현재 calEvents:', calEvents);
     document.getElementById('calMonthLabel').textContent = `${calYear}. ${String(calMonth + 1).padStart(2, '0')}`;
     const grid = document.getElementById('calGrid');
     while (grid.children.length > 7) grid.removeChild(grid.lastChild);
@@ -1120,6 +1109,7 @@
         cell.appendChild(dateEl);
 
         if (calEvents[ds]) {
+          console.log(`🎯 ${ds}에 일정 있음:`, calEvents[ds]);
           cell.classList.add('has-event');
           calEvents[ds].forEach(ev => {
             const evEl = document.createElement('div');
