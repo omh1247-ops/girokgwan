@@ -21,8 +21,10 @@
 .cal-today-btn:hover{border-color:var(--text);color:var(--text);background:var(--card)}
 </style>
 <style>
-.schedule-contact-btn{display:inline-flex;align-items:center;gap:.5rem;margin-top:1.2rem;padding:.7rem 1.4rem;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text);background:transparent;border:1px solid var(--text);text-decoration:none;font-family:inherit;transition:all .25s;cursor:pointer}
-.schedule-contact-btn:hover{background:var(--text);color:#fff}
+.cal-legend-row{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;flex-wrap:wrap;gap:1rem}
+.cal-legend-row .cal-legend{margin-top:0}
+.schedule-contact-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.4rem;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--text);border:1px solid var(--text);text-decoration:none;font-family:inherit;transition:all .25s;cursor:pointer}
+.schedule-contact-btn:hover{background:transparent;color:var(--text)}
 </style>
 </head>
 <body>
@@ -118,7 +120,6 @@
  <p class="section-tag" id="scheduleTag">Schedule</p>
  <h2 class="section-title">촬영 일정</h2>
  <p class="section-desc">예약 가능한 날짜를 확인하고 문의해 주세요.</p>
-<a href="#contact" class="schedule-contact-btn">문의하기 →</a>
  </div>
  </div>
  <div class="fade-in">
@@ -141,10 +142,13 @@
  <div class="cal-dow">Sat</div>
  </div>
  </div>
+<div class="cal-legend-row">
  <div class="cal-legend">
  <span><span class="leg-dot" style="background:#4d5e3a;"></span>예약됨</span>
  <span><span class="leg-dot" style="background:#e53935;"></span>조율중</span>
  </div>
+<a href="#contact" class="schedule-contact-btn">문의하기 →</a>
+</div>
  </div>
  </div>
 </section>
