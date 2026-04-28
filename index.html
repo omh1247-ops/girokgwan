@@ -62,105 +62,13 @@
  </div>
  </div>
 
- <!-- PHOTO PANEL -->
  <div class="work-panel active" id="wp-photo">
- <div id="tab-photo">
-
- <!-- Portraiture -->
- <div class="photo-section" id="sec-portraiture">
- <div class="photo-section-label">Portraiture</div>
- <div class="photo-grid">
- </div>
+ <div id="tab-photo"></div>
  </div>
 
- <!-- Product -->
- <div class="photo-section" id="sec-product">
- <div class="photo-section-label">Product</div>
- <div class="photo-grid">
- </div>
- </div>
-
- <!-- Food -->
- <div class="photo-section" id="sec-food">
- <div class="photo-section-label">Food</div>
- <div class="photo-grid">
- </div>
- </div>
-
- <!-- Moment -->
- <div class="photo-section" id="sec-moment">
- <div class="photo-section-label">Moment</div>
- <div class="photo-grid">
- </div>
- </div>
-
- <!-- Personal Work -->
- <div class="photo-section" id="sec-personalwork">
- <div class="photo-section-label">Personal Work</div>
- <div class="photo-grid">
- </div>
- </div>
-
- </div>
- </div><!-- /wp-photo -->
-
- <!-- VIDEO PANEL -->
  <div class="work-panel" id="wp-video">
- <div class="accordion">
-
- <!-- Commercial -->
- <div class="accordion-item" id="acc-cm">
- <div class="accordion-header" onclick="toggleAccordion('acc-cm')">
- <div>
- <span class="accordion-title">Commercial</span>
- <span class="accordion-count">09</span>
+ <div class="accordion" id="accordionContainer"></div>
  </div>
- <span class="accordion-arrow">+</span>
- </div>
- <div class="accordion-body">
- <div class="accordion-inner">
- <div class="video-grid">
- </div>
- </div>
- </div>
- </div>
-
- <!-- Music Video -->
- <div class="accordion-item" id="acc-mv">
- <div class="accordion-header" onclick="toggleAccordion('acc-mv')">
- <div>
- <span class="accordion-title">Music Video</span>
- <span class="accordion-count">05</span>
- </div>
- <span class="accordion-arrow">+</span>
- </div>
- <div class="accordion-body">
- <div class="accordion-inner">
- <div class="video-grid">
- </div>
- </div>
- </div>
- </div>
-
- <!-- Sketch -->
- <div class="accordion-item" id="acc-sk">
- <div class="accordion-header" onclick="toggleAccordion('acc-sk')">
- <div>
- <span class="accordion-title">Sketch</span>
- <span class="accordion-count">02</span>
- </div>
- <span class="accordion-arrow">+</span>
- </div>
- <div class="accordion-body">
- <div class="accordion-inner">
- <div class="video-grid" style="display:flex;flex-wrap:wrap;justify-content:center;">
- </div>
- </div>
- </div>
- </div>
-
- </div>
- </div><!-- /wp-video -->
 
  </div>
 </section>
@@ -174,51 +82,7 @@
  </div>
  <p class="services-note">세부 견적은 문의 주시면<br>안내드립니다.</p>
  </div>
- <div class="services-grid fade-in">
-
- <div class="service-card">
- <p class="service-num">01</p>
- <p class="service-name">인물 · 포트레이트</p>
- <div class="pkg-list">
- <div class="pkg-item">기본 2시간 — 200,000원</div>
- <div class="pkg-item">보정 2컷 제공</div>
- </div>
- <a href="#contact" class="service-link">문의하기</a>
- </div>
-
- <div class="service-card">
- <p class="service-num">02</p>
- <p class="service-name">룩북 · 패션</p>
- <div class="pkg-list">
- <div class="pkg-item">기본 3시간 — 300,000원</div>
- <div class="pkg-item">하프 6시간 — 500,000원</div>
- <div class="pkg-item">풀 8시간 — 700,000원</div>
- </div>
- <a href="#contact" class="service-link">문의하기</a>
- </div>
-
- <div class="service-card">
- <p class="service-num">03</p>
- <p class="service-name">제품 촬영</p>
- <div class="pkg-list">
- <div class="pkg-item">기본 3시간 — 300,000원</div>
- <div class="pkg-item">하프 6시간 — 500,000원</div>
- <div class="pkg-item">풀 8시간 — 700,000원</div>
- </div>
- <a href="#contact" class="service-link">문의하기</a>
- </div>
-
- <div class="service-card">
- <p class="service-num">04</p>
- <p class="service-name">영상 제작</p>
- <div class="pkg-list">
- <div class="pkg-item">브랜드 필름, 뮤직비디오,</div>
- <div class="pkg-item">리캡 등 문의 부탁드립니다.</div>
- </div>
- <a href="#contact" class="service-link">문의하기</a>
- </div>
-
- </div>
+ <div class="services-grid fade-in" id="servicesGrid"></div>
 
  <div class="services-common fade-in">
  <div class="services-common-item">헤어메이크업, 스타일리스트, 모델, 외부 스튜디오 대관 비용은 불포함입니다.</div>
@@ -558,21 +422,19 @@
  <!-- 추가 폼 (비밀번호 인증 후) -->
  <div id="evAddForm" >
  <!-- All Day 버튼 -->
- <div >
- <input type="checkbox" id="allDayCheck" onchange="toggleAllDay()" style="width:20px;height:20px;cursor:pointer;accent-color:var(--text);">
+ <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.8rem;">
+ <input type="checkbox" id="allDayCheck" onchange="toggleAllDay()" style="width:18px;height:18px;cursor:pointer;accent-color:var(--text);">
  <label for="allDayCheck" style="font-size:0.85rem;cursor:pointer;user-select:none;font-weight:600;">All Day</label>
  </div>
+ <!-- 날짜 입력 (수정 시 변경 가능) -->
+ <input type="date" id="evEditDate" style="display:none;width:100%;padding:0.7rem 0.8rem;border:1px solid var(--border);font-family:inherit;font-size:0.85rem;margin-bottom:0.7rem;outline:none;color:var(--text);background:var(--bg);">
  <!-- 시간 입력 -->
  <div id="timeInputs" >
  <select id="evStartHour" ></select>
  <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;">시</span>
- <select id="evStartMin" ></select>
- <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;">분</span>
  <span >~</span>
  <select id="evEndHour" ></select>
  <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;">시</span>
- <select id="evEndMin" ></select>
- <span style="color:var(--sub);font-size:0.82rem;flex-shrink:0;">분</span>
  </div>
  <input type="text" id="evTitle" placeholder="일정 이름 (예: 인물 촬영)">
  <select id="evType">
@@ -624,6 +486,39 @@
  });
 
  let fbUnsubscribe = null; // Firebase 리스너 unsubscribe 함수
+
+ // 포트폴리오 섹션 데이터
+ const photoSections = [
+ {id:'sec-portraiture',name:'Portraiture'},
+ {id:'sec-product',name:'Product'},
+ {id:'sec-food',name:'Food'},
+ {id:'sec-moment',name:'Moment'},
+ {id:'sec-personalwork',name:'Personal Work'}
+ ];
+
+ // 비디오 아코디언 데이터
+ const videoAccordions = [
+ {id:'acc-cm',title:'Commercial',count:'09'},
+ {id:'acc-mv',title:'Music Video',count:'05'},
+ {id:'acc-sk',title:'Sketch',count:'02'}
+ ];
+
+ // 서비스 카드 데이터
+ const services = [
+ {num:'01',name:'인물 · 포트레이트',items:['기본 2시간 — 200,000원','보정 2컷 제공']},
+ {num:'02',name:'룩북 · 패션',items:['기본 3시간 — 300,000원','하프 6시간 — 500,000원','풀 8시간 — 700,000원']},
+ {num:'03',name:'제품 촬영',items:['기본 3시간 — 300,000원','하프 6시간 — 500,000원','풀 8시간 — 700,000원']},
+ {num:'04',name:'영상 제작',items:['브랜드 필름, 뮤직비디오,','리캡 등 문의 부탁드립니다.']}
+ ];
+
+ // 포토 섹션 생성
+ function buildPhotoSections(){const tabPhoto=document.getElementById('tab-photo');photoSections.forEach(s=>{const sec=document.createElement('div');sec.className='photo-section';sec.id=s.id;sec.innerHTML=`<div class="photo-section-label">${s.name}</div><div class="photo-grid"></div>`;tabPhoto.appendChild(sec);});}
+
+ // 비디오 아코디언 생성
+ function buildVideoAccordions(){const accordionContainer=document.getElementById('accordionContainer');videoAccordions.forEach(v=>{const item=document.createElement('div');item.className='accordion-item';item.id=v.id;item.innerHTML=`<div class="accordion-header" onclick="toggleAccordion('${v.id}')"><div><span class="accordion-title">${v.title}</span><span class="accordion-count">${v.count}</span></div><span class="accordion-arrow">+</span></div><div class="accordion-body"><div class="accordion-inner"><div class="video-grid"${v.id==='acc-sk'?' style="display:flex;flex-wrap:wrap;justify-content:center;"':''}></div></div></div>`;accordionContainer.appendChild(item);});}
+
+ // 서비스 카드 생성
+ function buildServices(){const servicesGrid=document.getElementById('servicesGrid');services.forEach(s=>{const card=document.createElement('div');card.className='service-card';card.innerHTML=`<p class="service-num">${s.num}</p><p class="service-name">${s.name}</p><div class="pkg-list">${s.items.map(i=>`<div class="pkg-item">${i}</div>`).join('')}</div><a href="#contact" class="service-link">문의하기</a>`;servicesGrid.appendChild(card);});
 
  // ─── 상태 ───
  let calYear, calMonth, calEvents = {};
@@ -852,11 +747,9 @@
  
  if (!isAllDay) {
  const sh = document.getElementById('evStartHour').value;
- const sm = document.getElementById('evStartMin').value;
  const eh = document.getElementById('evEndHour').value;
- const em = document.getElementById('evEndMin').value;
- startTime = sh ? `${sh}:${sm}` : '';
- endTime = eh ? `${eh}:${em}` : '';
+ startTime = sh ? sh : '';
+ endTime = eh ? eh : '';
  }
  
  if (!date || !title) return;
@@ -1091,14 +984,13 @@
  html += `<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`;
  sel.innerHTML = html;
  }
- function buildMinOptions(id) {
- document.getElementById(id).innerHTML =
- '<option value="00">00</option><option value="30">30</option>';
- }
 
  function initCalendar() {
- buildHourOptions('evStartHour'); buildMinOptions('evStartMin');
- buildHourOptions('evEndHour'); buildMinOptions('evEndMin');
+ buildPhotoSections();
+ buildVideoAccordions();
+ buildServices();
+ buildHourOptions('evStartHour');
+ buildHourOptions('evEndHour');
  const now = new Date();
  calYear = now.getFullYear();
  calMonth = now.getMonth();
@@ -1153,6 +1045,7 @@
 
  cell.appendChild(dateEl);
 
+ // 현재 월의 이벤트만 표시
  if (calEvents[ds]) {
  console.log(`🎯 ${ds}에 일정 있음:`, calEvents[ds]);
  cell.classList.add('has-event');
@@ -1168,6 +1061,7 @@
  cell.addEventListener('click', () => openAddModal(ds));
  } else {
  cell.appendChild(dateEl);
+ // other-month 셀은 클릭 불가 + 이벤트 없음
  }
 
  grid.appendChild(cell);
