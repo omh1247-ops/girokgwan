@@ -519,7 +519,7 @@
 
  // 서비스 카드 생성
  function buildServices(){const servicesGrid=document.getElementById('servicesGrid');services.forEach(s=>{const card=document.createElement('div');card.className='service-card';card.innerHTML=`<p class="service-num">${s.num}</p><p class="service-name">${s.name}</p><div class="pkg-list">${s.items.map(i=>`<div class="pkg-item">${i}</div>`).join('')}</div><a href="#contact" class="service-link">문의하기</a>`;servicesGrid.appendChild(card);});
-
+}
  // ─── 상태 ───
  let calYear, calMonth, calEvents = {};
  const ADMIN_PW = 'audgns12'; // ← 비밀번호 변경 시 여기만 수정
