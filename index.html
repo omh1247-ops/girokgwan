@@ -422,6 +422,12 @@
  }
  document.addEventListener('keydown', e => {
  if (e.key === 'Escape') closeLightbox();
+if (e.key === 'Escape') {
+const calModal = document.getElementById('addModal');
+if (calModal && calModal.classList.contains('open')) {
+closeCalModal('addModal');
+}
+}
  if (e.key === 'ArrowLeft') { if (lbIndex > 0) { lbIndex--; showLightboxImg(); } }
  if (e.key === 'ArrowRight') { if (lbIndex < lbImages.length - 1) { lbIndex++; showLightboxImg(); } }
  });
@@ -571,6 +577,11 @@
  let writeQueue = []; // Firebase 쓰기 실패 시 대기열
  function openCalModal(id) { document.getElementById(id).classList.add('open'); }
  function closeCalModal(id) { document.getElementById(id).classList.remove('open'); }
+document.getElementById('addModal').addEventListener('click', (e) => {
+if (e.target === e.currentTarget) {
+closeCalModal('addModal');
+}
+});
 
 function sortEvents(events) {
   return events.sort((a, b) => {
