@@ -1047,15 +1047,17 @@
  const today = new Date();
  const firstDow = new Date(calYear, calMonth, 1).getDay();
  const daysInMon = new Date(calYear, calMonth + 1, 0).getDate();
- const daysInPrev = new Date(calYear, calMonth, 0).getDate();
 
  let cells = [];
- for (let i = firstDow - 1; i >= 0; i--)
- cells.push({ day: daysInPrev - i, cur: false });
+ // 이전 달 빈 칸 (숫자 없음)
+ for (let i = 0; i < firstDow; i++)
+ cells.push({ day: null, cur: false });
+ // 현재 달 날짜
  for (let d = 1; d <= daysInMon; d++)
  cells.push({ day: d, cur: true });
+ // 다음 달 빈 칸 (숫자 없음)
  while (cells.length % 7 !== 0)
- cells.push({ day: cells.length - daysInMon - firstDow + 1, cur: false });
+ cells.push({ day: null, cur: false });
 
  const totalRows = cells.length / 7;
 
@@ -1064,11 +1066,11 @@
  const row = Math.floor(idx / 7);
  cell.className = 'cal-cell' + (cur ? '' : ' other-month') + (row === totalRows - 1 ? ' row-last' : '');
 
+ if (cur && day !== null) {
  const dateEl = document.createElement('div');
  dateEl.className = 'cal-date';
  dateEl.textContent = day;
 
- if (cur) {
  const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
  const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === day;
  if (isToday) cell.classList.add('today');
@@ -1090,10 +1092,8 @@
 
  cell.style.cursor = 'pointer';
  cell.addEventListener('click', () => openAddModal(ds));
- } else {
- cell.appendChild(dateEl);
- // other-month 셀은 클릭 불가 + 이벤트 없음
  }
+ // other-month 셀은 빈 칸으로 유지
 
  grid.appendChild(cell);
  });
