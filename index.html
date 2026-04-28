@@ -30,7 +30,7 @@
  <div class="hero-text">
  <p class="hero-label">Seoul, Korea · Since 2025</p>
  <div >
- <img loading="lazy" decoding="async" src="logo.png/logo-full.png" alt="기록관" >
+ <img loading="lazy" decoding="async" src="logo.png/logo-full.png" alt="기록관" style="height:auto;width:100%;max-width:180px;display:block;">
  </div>
  <p class="hero-sub">순간의 감정과 이야기를 기록합니다</p>
  </div>
@@ -671,58 +671,56 @@
 
  // ─── Firebase + localStorage 이벤트 로드 (실시간 동기화) ───
  function loadEvents() {
- // 1단계: localStorage 먼저 복구 (즉시 표시)
- const backup = localStorage.getItem('calEventsBackup');
- console.log('📦 localStorage 데이터:', backup ? JSON.parse(backup) : '없음');
- if (backup) {
- calEvents = JSON.parse(backup);
- console.log('✅ localStorage에서 복구됨:', calEvents);
- renderCalendar();
- }
-
- // 2단계: Firebase 실시간 리스너 설정 (여러 기기 간 즉시 동기화)
+ // Firebase만을 신뢰 - localStorage 의존도 제거
+ calEvents = {};
+ let isFirstLoad = true;
  try {
  db.collection('events').onSnapshot((snap) => {
- console.log('🔄 Firebase 실시간 동기화 시작...');
+ console.log('🔄 Firebase 실시간 동기화...');
  let firebaseEvents = {};
  snap.forEach(doc => {
  const d = doc.data();
  if (!firebaseEvents[d.date]) firebaseEvents[d.date] = [];
  firebaseEvents[d.date].push({ id: doc.id, ...d });
  });
-
  calEvents = firebaseEvents;
- console.log('🔄 Firebase에서 동기화됨:', calEvents);
+ console.log('✅ Firebase 동기화 완료:', calEvents);
  localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
  renderCalendar();
-
- // 동기화 상태 표시
+ if (isFirstLoad) { isFirstLoad = false; console.log('✅ 초기 로드 완료'); }
  const syncStatus = document.getElementById('syncStatus');
  if (syncStatus) {
  syncStatus.classList.remove('offline');
  syncStatus.classList.add('online');
  document.getElementById('syncStatusText').textContent = '연결됨';
- setTimeout(() => {
- syncStatus.classList.remove('online');
- document.getElementById('syncStatusText').textContent = '연결 중...';
- }, 2000);
+ setTimeout(() => { syncStatus.classList.remove('online'); document.getElementById('syncStatusText').textContent = '연결 중...'; }, 2000);
  }
  }, (error) => {
- console.log('⚠️ Firebase 리스너 오류:', error.message);
+ console.log('⚠️ Firebase 오류:', error.message);
  const syncStatus = document.getElementById('syncStatus');
- if (syncStatus) {
- syncStatus.classList.add('offline');
- syncStatus.classList.remove('online');
- document.getElementById('syncStatusText').textContent = '오프라인';
- }
+ if (syncStatus) { syncStatus.classList.add('offline'); syncStatus.classList.remove('online'); document.getElementById('syncStatusText').textContent = '오프라인'; }
  });
- } catch(e) {
- console.log('⚠️ Firebase 연결 실패:', e.message, '→ 로컬 데이터 사용');
- const syncStatus = document.getElementById('syncStatus');
- if (syncStatus) {
- syncStatus.classList.add('offline');
- document.getElementById('syncStatusText').textContent = '오프라인';
+ setInterval(async () => {
+ try {
+ const snap = await db.collection('events').get();
+ let firebaseEvents = {};
+ snap.forEach(doc => {
+ const d = doc.data();
+ if (!firebaseEvents[d.date]) firebaseEvents[d.date] = [];
+ firebaseEvents[d.date].push({ id: doc.id, ...d });
+ });
+ if (JSON.stringify(firebaseEvents) !== JSON.stringify(calEvents)) {
+ console.log('🔄 주기적 갱신 (30초)');
+ calEvents = firebaseEvents;
+ localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
+ renderCalendar();
  }
+ } catch(e) { console.log('⚠️ 갱신 실패:', e.message); }
+ }, 30000);
+ } catch(e) {
+ console.log('⚠️ Firebase 연결 실패:', e.message);
+ const syncStatus = document.getElementById('syncStatus');
+ if (syncStatus) { syncStatus.classList.add('offline'); document.getElementById('syncStatusText').textContent = '오프라인'; }
  }
  }
 
