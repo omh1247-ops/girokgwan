@@ -614,6 +614,17 @@
  firebase.initializeApp(firebaseConfig);
  const db = firebase.firestore();
 
+ // Firestore 영속성 활성화 (오프라인 지원)
+ db.enablePersistence().catch((err) => {
+ if (err.code == 'failed-precondition') {
+ console.log('⚠️ 여러 탭에서 열려있음');
+ } else if (err.code == 'unimplemented') {
+ console.log('⚠️ 이 브라우저는 오프라인 지원 안 됨');
+ }
+ });
+
+ let fbUnsubscribe = null; // Firebase 리스너 unsubscribe 함수
+
  // ─── 상태 ───
  let calYear, calMonth, calEvents = {};
  const ADMIN_PW = 'audgns12'; // ← 비밀번호 변경 시 여기만 수정
@@ -671,7 +682,7 @@
 
  // ─── Firebase + localStorage 이벤트 로드 (실시간 동기화) ───
  function loadEvents() {
- // localStorage에서 초기 데이터 로드 (캐시) — 빠른 표시용
+ // localStorage에서 초기 데이터 로드 (캐시)
  const backupData = localStorage.getItem('calEventsBackup');
  if (backupData) {
  try {
@@ -686,9 +697,16 @@
  calEvents = {};
  }
 
+ // 기존 리스너 종료
+ if (fbUnsubscribe) {
+ fbUnsubscribe();
+ console.log('🔄 이전 Firebase 리스너 종료');
+ }
+
  let isFirstLoad = true;
  try {
- db.collection('events').onSnapshot((snap) => {
+ // Firebase 실시간 리스너
+ fbUnsubscribe = db.collection('events').onSnapshot((snap) => {
  console.log('🔄 Firebase 실시간 동기화...');
  let firebaseEvents = {};
  snap.forEach(doc => {
@@ -697,7 +715,6 @@
  firebaseEvents[d.date].push({ id: doc.id, ...d });
  });
 
- // Firebase 데이터와 로컬이 다를 때만 업데이트
  if (JSON.stringify(firebaseEvents) !== JSON.stringify(calEvents)) {
  calEvents = firebaseEvents;
  console.log('✅ Firebase 동기화 완료:', calEvents);
@@ -720,6 +737,56 @@
  const syncStatus = document.getElementById('syncStatus');
  if (syncStatus) { syncStatus.classList.add('offline'); syncStatus.classList.remove('online'); document.getElementById('syncStatusText').textContent = '오프라인'; }
  });
+ } catch(e) {
+ console.log('⚠️ Firebase 연결 실패:', e.message);
+ const syncStatus = document.getElementById('syncStatus');
+ if (syncStatus) { syncStatus.classList.add('offline'); document.getElementById('syncStatusText').textContent = '오프라인'; }
+ }
+ }
+
+ // Page Visibility API - 탭이 백그라운드에서 포그라운드로 돌아올 때 강제 갱신
+ document.addEventListener('visibilitychange', () => {
+ if (document.hidden) {
+ console.log('📱 탭이 백그라운드로');
+ } else {
+ console.log('📱 탭이 포그라운드로 - 강제 갱신 시작');
+ // 포그라운드로 돌아왔을 때 즉시 Firebase 다시 로드
+ (async () => {
+ try {
+ const snap = await db.collection('events').get();
+ let firebaseEvents = {};
+ snap.forEach(doc => {
+ const d = doc.data();
+ if (!firebaseEvents[d.date]) firebaseEvents[d.date] = [];
+ firebaseEvents[d.date].push({ id: doc.id, ...d });
+ });
+ if (JSON.stringify(firebaseEvents) !== JSON.stringify(calEvents)) {
+ console.log('🔄 포그라운드 강제 갱신');
+ calEvents = firebaseEvents;
+ localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
+ renderCalendar();
+ }
+ } catch(e) { console.log('⚠️ 강제 갱신 실패:', e.message); }
+ })();
+ }
+ });
+
+ // Network 상태 감지 (온라인/오프라인)
+ window.addEventListener('online', () => {
+ console.log('🌐 인터넷 연결됨');
+ loadEvents(); // 온라인 복구 시 즉시 재연결
+ });
+ window.addEventListener('offline', () => {
+ console.log('📵 인터넷 연결 끊김 - 로컬 데이터만 사용');
+ const syncStatus = document.getElementById('syncStatus');
+ if (syncStatus) {
+ syncStatus.classList.add('offline');
+ syncStatus.classList.remove('online');
+ document.getElementById('syncStatusText').textContent = '오프라인';
+ }
+ });
+
+ // 주기적 갱신 (15초마다) - 혹시 빠진 변경사항 감지
  setInterval(async () => {
  try {
  const snap = await db.collection('events').get();
@@ -730,19 +797,13 @@
  firebaseEvents[d.date].push({ id: doc.id, ...d });
  });
  if (JSON.stringify(firebaseEvents) !== JSON.stringify(calEvents)) {
- console.log('🔄 주기적 갱신 (30초)');
+ console.log('🔄 주기적 갱신 (15초)');
  calEvents = firebaseEvents;
  localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
  renderCalendar();
  }
- } catch(e) { console.log('⚠️ 갱신 실패:', e.message); }
- }, 30000);
- } catch(e) {
- console.log('⚠️ Firebase 연결 실패:', e.message);
- const syncStatus = document.getElementById('syncStatus');
- if (syncStatus) { syncStatus.classList.add('offline'); document.getElementById('syncStatusText').textContent = '오프라인'; }
- }
- }
+ } catch(e) { console.log('⚠️ 주기적 갱신 실패:', e.message); }
+ }, 15000);
 
  // ─── All Day 토글 ───
  function toggleAllDay() {
