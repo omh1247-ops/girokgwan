@@ -549,6 +549,15 @@
  function openCalModal(id) { document.getElementById(id).classList.add('open'); }
  function closeCalModal(id) { document.getElementById(id).classList.remove('open'); }
 
+function sortEvents(events) {
+  return events.sort((a, b) => {
+    if (!a.startTime && b.startTime) return -1;
+    if (a.startTime && !b.startTime) return 1;
+    if (!a.startTime && !b.startTime) return 0;
+    return a.startTime.localeCompare(b.startTime);
+  });
+}
+
  // ─── Firebase + localStorage 이벤트 로드 (실시간 동기화) ───
  function loadEvents() {
  // localStorage에서 초기 데이터 로드 (캐시)
