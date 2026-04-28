@@ -739,18 +739,11 @@ function sortEvents(events) {
  const events = calEvents[dateStr] || [];
  const emptyMsg = document.getElementById('timeGridEmptyMsg');
 const container = document.getElementById('timeGridContainer');
- 
- if (!events.length) {
- grid.innerHTML = '';
- emptyMsg.style.display = 'block';
-if (container) {
-requestAnimationFrame(() => {
-container.scrollTop = 9 * 40;
-});
-}
- return;
- }
- emptyMsg.style.display = 'none';
+const sortedEvents = sortEvents(events.slice());
+const timedEvents = sortedEvents.filter(ev => ev.startTime);
+
+if (!events.length) emptyMsg.style.display = 'block';
+else emptyMsg.style.display = 'none';
  
  // 시간 라벨과 셀 생성
  let html = '';
@@ -762,33 +755,32 @@ container.scrollTop = 9 * 40;
  grid.innerHTML = html;
  
  // 이벤트 블록 배치
- const sortedEvents = sortEvents(events);
- sortedEvents.forEach(ev => {
- if (!ev.startTime) return; // All Day 제외
+timedEvents.forEach(ev => {
  
- const startH = parseInt(ev.startTime);
+const startH = parseInt(ev.startTime, 10);
  const endH = ev.endTime ? parseInt(ev.endTime) : startH + 1;
- const timeCell = grid.querySelector(`[data-hour="${startH}"]`);
- 
- if (timeCell) {
- const block = document.createElement('div');
- block.className = `cal-event-block ${ev.type}`;
- block.textContent = `${ev.startTime}~${ev.endTime || startH + 1} ${ev.title}`;
- block.style.height = `${(endH - startH) * 40}px`;
- block.onclick = (e) => { e.stopPropagation(); openEditForm(ev.id, dateStr); };
- block.title = ev.title;
- timeCell.appendChild(block);
- }
+const block = document.createElement('div');
+block.className = `cal-event-block ${ev.type}`;
+block.textContent = `${ev.startTime}~${ev.endTime || startH + 1} ${ev.title}`;
+block.style.top = `${startH * 40}px`;
+block.style.left = '50px';
+block.style.right = '0';
+block.style.height = `${(endH - startH) * 40}px`;
+block.onclick = (e) => { e.stopPropagation(); openEditForm(ev.id, dateStr); };
+block.title = ev.title;
+grid.appendChild(block);
  });
 
 if (container) {
 let targetHour = 9;
-const timedEvents = sortEvents(events.slice()).filter(ev => ev.startTime);
 if (timedEvents.length > 0) {
 targetHour = parseInt(timedEvents[0].startTime, 10);
 }
 requestAnimationFrame(() => {
-container.scrollTop = targetHour * 40;
+const rowHeight = 40;
+const containerHeight = container.clientHeight;
+const offset = containerHeight / 3;
+container.scrollTop = Math.max(0, targetHour * rowHeight - offset);
 });
 }
  }
@@ -830,18 +822,6 @@ toggleNewAllDay(false);
  
  // 시간표 렌더링
  renderTimeGrid(dateStr);
-const timeGridContainer = document.querySelector('.cal-time-grid-container');
-if (timeGridContainer) {
-const events = calEvents[dateStr] || [];
-const timedEvents = events.filter(ev => ev.startTime);
-if (timedEvents.length) {
-const earliest = sortEvents(timedEvents.slice())[0];
-const earliestHour = parseInt(earliest.startTime, 10);
-timeGridContainer.scrollTop = earliestHour * 40;
-} else {
-timeGridContainer.scrollTop = 9 * 40;
-}
-}
  switchModalView('timeGridView');
  openCalModal('addModal');
  }
