@@ -9,10 +9,16 @@
  </style>
 <style>
 .cal-cell.today{background:#f0f0f0}
+.cal-cell.today .cal-date{background:transparent;color:var(--text)}
 </style>
 <style>
 .all-day-toggle{width:100%;padding:.7rem;background:var(--bg);color:var(--sub);border:1px solid var(--border);font-family:inherit;font-size:.8rem;letter-spacing:.08em;cursor:pointer;margin-bottom:.6rem;transition:all .2s}
 .all-day-toggle.active{background:var(--text);color:#fff;border-color:var(--text)}
+</style>
+<style>
+.cal-month-group{display:flex;align-items:center;gap:.8rem}
+.cal-today-btn{font-size:.7rem;letter-spacing:.05em;color:var(--sub);background:none;border:1px solid var(--border);padding:.35rem .8rem;cursor:pointer;font-family:inherit;transition:all .2s}
+.cal-today-btn:hover{border-color:var(--text);color:var(--text);background:var(--card)}
 </style>
 </head>
 <body>
@@ -113,8 +119,10 @@
  <div class="fade-in">
  <div class="cal-nav">
  <button class="cal-arrow" onclick="calPrev()">←</button>
+<div class="cal-month-group">
  <span class="cal-month-label" id="calMonthLabel"></span>
-<button class="cal-arrow" onclick="calToday()">오늘</button>
+<button class="cal-today-btn" onclick="calToday()">오늘로 이동</button>
+</div>
  <button class="cal-arrow" onclick="calNext()">→</button>
  </div>
  <div class="cal-grid-wrap">
@@ -809,7 +817,7 @@ const earliest = sortEvents(timedEvents.slice())[0];
 const earliestHour = parseInt(earliest.startTime, 10);
 timeGridContainer.scrollTop = earliestHour * 40;
 } else {
-timeGridContainer.scrollTop = 0;
+timeGridContainer.scrollTop = 9 * 40;
 }
 }
  switchModalView('timeGridView');
