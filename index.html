@@ -738,10 +738,16 @@ function sortEvents(events) {
  const grid = document.getElementById('timeGrid');
  const events = calEvents[dateStr] || [];
  const emptyMsg = document.getElementById('timeGridEmptyMsg');
+const container = document.getElementById('timeGridContainer');
  
  if (!events.length) {
  grid.innerHTML = '';
  emptyMsg.style.display = 'block';
+if (container) {
+requestAnimationFrame(() => {
+container.scrollTop = 9 * 40;
+});
+}
  return;
  }
  emptyMsg.style.display = 'none';
@@ -774,6 +780,17 @@ function sortEvents(events) {
  timeCell.appendChild(block);
  }
  });
+
+if (container) {
+let targetHour = 9;
+const timedEvents = sortEvents(events.slice()).filter(ev => ev.startTime);
+if (timedEvents.length > 0) {
+targetHour = parseInt(timedEvents[0].startTime, 10);
+}
+requestAnimationFrame(() => {
+container.scrollTop = targetHour * 40;
+});
+}
  }
 
  // ─── 날짜 클릭 → 모달 열기 ───
