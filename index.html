@@ -952,6 +952,16 @@
  })();
  }
 
+ // ─── 일정 정렬 (All Day 우선, 시간 순서) ───
+ function sortEvents(events) {
+ return events.sort((a, b) => {
+ if (!a.startTime && b.startTime) return -1;
+ if (a.startTime && !b.startTime) return 1;
+ if (!a.startTime && !b.startTime) return 0;
+ return a.startTime.localeCompare(b.startTime);
+ });
+ }
+
  // ─── 날짜별 기존 일정 목록 ───
  function formatTime(ev) {
  if (!ev.startTime) return '';
@@ -960,7 +970,7 @@
 
  function renderDayList(dateStr) {
  const list = document.getElementById('dayEvList');
- const dayEvs = calEvents[dateStr] || [];
+ const dayEvs = sortEvents(calEvents[dateStr] || []);
  if (!dayEvs.length) { list.innerHTML = '<p >등록된 일정이 없습니다.</p>'; return; }
  list.innerHTML = dayEvs.map(ev =>
  `<div class="cal-ev-row">
@@ -1069,7 +1079,8 @@
  if (calEvents[ds]) {
  console.log(`🎯 ${ds}에 일정 있음:`, calEvents[ds]);
  cell.classList.add('has-event');
- calEvents[ds].forEach(ev => {
+ const sortedEvents = sortEvents(calEvents[ds]);
+ sortedEvents.forEach(ev => {
  const evEl = document.createElement('div');
  evEl.className = `cal-event ${ev.type}`;
  evEl.textContent = ev.startTime ? `${ev.startTime} ${ev.title}` : ev.title;
