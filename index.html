@@ -630,6 +630,7 @@
  const ADMIN_PW = 'audgns12'; // ← 비밀번호 변경 시 여기만 수정
  const isAdmin = () => sessionStorage.getItem('calAdmin') === 'true';
  const editingEventId = null; // 수정 중인 이벤트 ID
+ let writeQueue = []; // Firebase 쓰기 실패 시 대기열
  function checkPw() {
  if (document.getElementById('pwInput').value === ADMIN_PW) {
  sessionStorage.setItem('calAdmin', 'true');
@@ -772,9 +773,34 @@
  });
 
  // Network 상태 감지 (온라인/오프라인)
- window.addEventListener('online', () => {
+ window.addEventListener('online', async () => {
  console.log('🌐 인터넷 연결됨');
  loadEvents(); // 온라인 복구 시 즉시 재연결
+
+ // 대기열에 있는 쓰기 작업 재시도
+ if (writeQueue.length > 0) {
+ console.log(`📤 대기열 처리 시작 (${writeQueue.length}개)`);
+ for (let i = 0; i < writeQueue.length; i++) {
+ const task = writeQueue[i];
+ try {
+ if (task.type === 'add') {
+ const ref = await db.collection('events').add(task.data);
+ console.log('✅ 대기 중인 추가 저장:', ref.id);
+ } else if (task.type === 'update') {
+ await db.collection('events').doc(task.id).update(task.data);
+ console.log('✅ 대기 중인 수정 저장:', task.id);
+ } else if (task.type === 'delete') {
+ await db.collection('events').doc(task.id).delete();
+ console.log('✅ 대기 중인 삭제 처리:', task.id);
+ }
+ writeQueue.splice(i, 1);
+ i--;
+ } catch(e) {
+ console.log('⚠️ 대기열 처리 실패, 계속 시도:', task);
+ }
+ }
+ console.log(`✅ 대기열 처리 완료 (남은 항목: ${writeQueue.length})`);
+ }
  });
  window.addEventListener('offline', () => {
  console.log('📵 인터넷 연결 끊김 - 로컬 데이터만 사용');
@@ -861,7 +887,12 @@
  localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
  console.log('✅ Firebase에 저장됨, ID:', ref.id);
  } catch (e) {
- console.log('⚠️ Firebase 저장 실패:', e.message, '→ 로컬만 유지');
+ console.log('⚠️ Firebase 저장 실패, 대기열에 추가:', e.message);
+ writeQueue.push({
+ type: 'add',
+ data: { date, title, type, startTime, endTime }
+ });
+ console.log('📋 쓰기 대기열 추가 (총', writeQueue.length, '개)');
  }
  })();
  }
@@ -961,7 +992,15 @@
  console.log('✅ Firebase에서 수정됨, ID:', id);
  }
  } catch (e) {
- console.log('⚠️ Firebase 업데이트 실패:', e.message, '→ 로컬만 유지');
+ console.log('⚠️ Firebase 업데이트 실패, 대기열에 추가:', e.message);
+ if (!id.startsWith('tmp_')) {
+ writeQueue.push({
+ type: 'update',
+ id: id,
+ data: { title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime }
+ });
+ console.log('📋 수정 대기열 추가 (총', writeQueue.length, '개)');
+ }
  }
  })();
  }
@@ -990,7 +1029,14 @@
  console.log('⏭️ 임시 ID이므로 Firebase 삭제 스킵');
  }
  } catch (e) {
- console.log('⚠️ Firebase 삭제 실패:', e.message, '→ 로컬만 유지');
+ console.log('⚠️ Firebase 삭제 실패, 대기열에 추가:', e.message);
+ if (!id.startsWith('tmp_')) {
+ writeQueue.push({
+ type: 'delete',
+ id: id
+ });
+ console.log('📋 삭제 대기열 추가 (총', writeQueue.length, '개)');
+ }
  }
  })();
  }
