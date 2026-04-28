@@ -902,6 +902,7 @@
  console.log('✅ Firebase에서 수정됨, ID:', id);
  }
  }
+ }
  } catch (e) {
  console.log('⚠️ Firebase 업데이트 실패, 대기열에 추가:', e.message);
  if (!id.startsWith('tmp_')) {
@@ -911,9 +912,6 @@
  data: { date: newDate, title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime }
  });
  console.log('📋 수정 대기열 추가 (총', writeQueue.length, '개)');
- }
- }
- })();
  }
  }
  })();
@@ -990,7 +988,7 @@
  document.getElementById('pwErr').textContent = '';
  document.getElementById('evTitle').value = '';
  document.getElementById('allDayCheck').checked = false;
- ['evStartHour','evStartMin','evEndHour','evEndMin'].forEach(id => document.getElementById(id).selectedIndex = 0);
+ ['evStartHour','evEndHour'].forEach(id => document.getElementById(id).selectedIndex = 0);
  toggleAllDay();
  renderDayList(dateStr);
  openCalModal('addModal');
