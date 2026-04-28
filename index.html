@@ -986,9 +986,11 @@
  document.getElementById('pwInput').value = '';
  document.getElementById('pwErr').textContent = '';
  document.getElementById('evTitle').value = '';
+ document.getElementById('evEditDate').style.display = 'none';
  document.getElementById('allDayCheck').checked = false;
  ['evStartHour','evEndHour'].forEach(id => document.getElementById(id).selectedIndex = 0);
  toggleAllDay();
+ resetSubmitBtn();
  renderDayList(dateStr);
  openCalModal('addModal');
  }
