@@ -10,6 +10,10 @@
 <style>
 .cal-cell.today{background:#f0f0f0}
 </style>
+<style>
+.all-day-toggle{width:100%;padding:.7rem;background:var(--bg);color:var(--sub);border:1px solid var(--border);font-family:inherit;font-size:.8rem;letter-spacing:.08em;cursor:pointer;margin-bottom:.6rem;transition:all .2s}
+.all-day-toggle.active{background:var(--text);color:#fff;border-color:var(--text)}
+</style>
 </head>
 <body>
 
@@ -430,10 +434,7 @@
  <div class="cal-modal-view" id="addFormView">
  <div class="cal-edit-form active" id="newEventForm">
  <input type="text" id="newEvTitle" placeholder="일정 이름 (예: 인물 촬영)" maxlength="50">
-<label style="display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;font-size:.8rem;color:var(--sub);cursor:pointer;">
-<input type="checkbox" id="newEvAllDay" onchange="toggleNewAllDay()">
-종일
-</label>
+<button type="button" class="all-day-toggle" id="newEvAllDay" onclick="toggleNewAllDay()">ALL DAY</button>
  <div style="display:flex;gap:.5rem;margin-bottom:.6rem;">
  <select id="newEvStart" style="flex:1;"></select>
  <span style="color:var(--sub);font-size:0.75rem;flex-shrink:0;align-self:center;">~</span>
@@ -454,10 +455,7 @@
  <div class="cal-modal-view" id="editFormView">
  <div class="cal-edit-form active" id="editEventForm">
  <input type="text" id="editEvTitle" placeholder="일정 이름" maxlength="50">
-<label style="display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem;font-size:.8rem;color:var(--sub);cursor:pointer;">
-<input type="checkbox" id="editEvAllDay" onchange="toggleEditAllDay()">
-종일
-</label>
+<button type="button" class="all-day-toggle" id="editEvAllDay" onclick="toggleEditAllDay()">ALL DAY</button>
  <div style="display:flex;gap:.5rem;margin-bottom:.6rem;">
  <select id="editEvStart" style="flex:1;"></select>
  <span style="color:var(--sub);font-size:0.75rem;flex-shrink:0;align-self:center;">~</span>
@@ -780,8 +778,8 @@ function sortEvents(events) {
  document.getElementById('newEvStart').value = '';
  document.getElementById('newEvEnd').value = '';
  document.getElementById('newEvType').value = 'booked';
-document.getElementById('newEvAllDay').checked = false;
-toggleNewAllDay();
+document.getElementById('newEvAllDay').classList.remove('active');
+toggleNewAllDay(false);
  
  // + 추가 버튼 표시 여부 (관리자만)
  const modalAddBtn = document.getElementById('modalAddBtn');
@@ -844,7 +842,9 @@ timeGridContainer.scrollTop = 0;
  }
 
 function toggleNewAllDay() {
-const allDay = document.getElementById('newEvAllDay').checked;
+const allDayBtn = document.getElementById('newEvAllDay');
+if (arguments.length === 0) allDayBtn.classList.toggle('active');
+const allDay = allDayBtn.classList.contains('active');
 const startSel = document.getElementById('newEvStart');
 const endSel = document.getElementById('newEvEnd');
 startSel.disabled = allDay;
@@ -854,7 +854,9 @@ endSel.style.opacity = allDay ? '0.4' : '';
 }
 
 function toggleEditAllDay() {
-const allDay = document.getElementById('editEvAllDay').checked;
+const allDayBtn = document.getElementById('editEvAllDay');
+if (arguments.length === 0) allDayBtn.classList.toggle('active');
+const allDay = allDayBtn.classList.contains('active');
 const startSel = document.getElementById('editEvStart');
 const endSel = document.getElementById('editEvEnd');
 startSel.disabled = allDay;
@@ -869,7 +871,7 @@ endSel.style.opacity = allDay ? '0.4' : '';
  
  const date = document.getElementById('evDate').value;
  const title = document.getElementById('newEvTitle').value.trim();
-const isAllDay = document.getElementById('newEvAllDay').checked;
+const isAllDay = document.getElementById('newEvAllDay').classList.contains('active');
 const startTime = isAllDay ? '' : document.getElementById('newEvStart').value;
 const endTime = isAllDay ? '' : document.getElementById('newEvEnd').value;
  const type = document.getElementById('newEvType').value;
@@ -913,8 +915,8 @@ if (!isAllDay && endTime <= startTime) { alert('종료 시간이 시작 시간�
  document.getElementById('editEvStart').value = ev.startTime || '';
  document.getElementById('editEvEnd').value = ev.endTime || '';
  document.getElementById('editEvType').value = ev.type;
-document.getElementById('editEvAllDay').checked = !ev.startTime;
-toggleEditAllDay();
+document.getElementById('editEvAllDay').classList.toggle('active', !ev.startTime);
+toggleEditAllDay(false);
  
  switchModalView('editFormView');
  }
@@ -924,7 +926,7 @@ toggleEditAllDay();
  const eventId = document.getElementById('editingEventId').value;
  const dateStr = document.getElementById('evDate').value;
  const title = document.getElementById('editEvTitle').value.trim();
-const isAllDay = document.getElementById('editEvAllDay').checked;
+const isAllDay = document.getElementById('editEvAllDay').classList.contains('active');
 const startTime = isAllDay ? '' : document.getElementById('editEvStart').value;
 const endTime = isAllDay ? '' : document.getElementById('editEvEnd').value;
  const type = document.getElementById('editEvType').value;
