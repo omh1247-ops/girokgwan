@@ -562,8 +562,9 @@
  // ─── 폼 초기화 ───
  function clearAddForm() {
  document.getElementById('evTitle').value = '';
+ document.getElementById('evEditDate').style.display = 'none';
  document.getElementById('allDayCheck').checked = false;
- ['evStartHour','evStartMin','evEndHour','evEndMin'].forEach(id => document.getElementById(id).selectedIndex = 0);
+ ['evStartHour','evEndHour'].forEach(id => document.getElementById(id).selectedIndex = 0);
  toggleAllDay();
  }
 
@@ -797,6 +798,8 @@
 
  // 폼에 데이터 로드
  document.getElementById('evDate').value = date;
+ document.getElementById('evEditDate').value = date;
+ document.getElementById('evEditDate').style.display = 'block';
  document.getElementById('evTitle').value = ev.title;
  document.getElementById('evType').value = ev.type;
  
@@ -805,14 +808,12 @@
  toggleAllDay();
 
  if (ev.startTime) {
- const [sh, sm] = ev.startTime.split(':');
+ const sh = ev.startTime.split(':')[0];
  document.getElementById('evStartHour').value = sh;
- document.getElementById('evStartMin').value = sm;
  }
  if (ev.endTime) {
- const [eh, em] = ev.endTime.split(':');
+ const eh = ev.endTime.split(':')[0];
  document.getElementById('evEndHour').value = eh;
- document.getElementById('evEndMin').value = em;
  }
 
  // 모달 제목 업데이트
@@ -835,7 +836,8 @@
  }
 
  // ─── 일정 업데이트 ───
- function updateEvent(id, date) {
+ function updateEvent(id, oldDate) {
+ const newDate = document.getElementById('evEditDate').value;
  const newTitle = document.getElementById('evTitle').value.trim();
  const newType = document.getElementById('evType').value;
  const isAllDay = document.getElementById('allDayCheck').checked;
@@ -844,11 +846,9 @@
  
  if (!isAllDay) {
  const sh = document.getElementById('evStartHour').value;
- const sm = document.getElementById('evStartMin').value;
  const eh = document.getElementById('evEndHour').value;
- const em = document.getElementById('evEndMin').value;
- newStartTime = sh ? `${sh}:${sm}` : '';
- newEndTime = eh ? `${eh}:${em}` : '';
+ newStartTime = sh ? sh : '';
+ newEndTime = eh ? eh : '';
  }
  
  if (!newTitle) return;
@@ -858,15 +858,17 @@
  return;
  }
 
- // 기존 이벤트 제거
- if (calEvents[date]) {
- const idx = calEvents[date].findIndex(e => e.id === id);
- if (idx !== -1) {
- calEvents[date][idx] = {
- id, date, title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime
- };
+ // 기존 이벤트 제거 (날짜 변경 가능)
+ if (calEvents[oldDate]) {
+ calEvents[oldDate] = calEvents[oldDate].filter(e => e.id !== id);
+ if (!calEvents[oldDate].length) delete calEvents[oldDate];
  }
- }
+
+ // 새 날짜에 이벤트 추가
+ if (!calEvents[newDate]) calEvents[newDate] = [];
+ calEvents[newDate].push({
+ id, date: newDate, title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime
+ });
 
  localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
  console.log('✅ localStorage에서 수정됨:', calEvents);
@@ -879,10 +881,26 @@
  (async () => {
  try {
  if (!id.startsWith('tmp_')) {
+ if (newDate !== oldDate) {
+ // 날짜가 변경되면 기존 문서 삭제 후 새 문서 생성
+ await db.collection('events').doc(id).delete();
+ const ref = await db.collection('events').add({
+ date: newDate, title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime
+ });
+ console.log('✅ Firebase에서 날짜 변경으로 재생성됨, ID:', ref.id);
+ // localStorage 업데이트 (새 ID로)
+ const ev = calEvents[newDate]?.find(e => e.id === id);
+ if (ev) {
+ ev.id = ref.id;
+ localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
+ }
+ } else {
+ // 같은 날짜면 업데이트만
  await db.collection('events').doc(id).update({
  title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime
  });
  console.log('✅ Firebase에서 수정됨, ID:', id);
+ }
  }
  } catch (e) {
  console.log('⚠️ Firebase 업데이트 실패, 대기열에 추가:', e.message);
@@ -890,9 +908,12 @@
  writeQueue.push({
  type: 'update',
  id: id,
- data: { title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime }
+ data: { date: newDate, title: newTitle, type: newType, startTime: newStartTime, endTime: newEndTime }
  });
  console.log('📋 수정 대기열 추가 (총', writeQueue.length, '개)');
+ }
+ }
+ })();
  }
  }
  })();
