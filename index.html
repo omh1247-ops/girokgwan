@@ -671,8 +671,21 @@
 
  // ─── Firebase + localStorage 이벤트 로드 (실시간 동기화) ───
  function loadEvents() {
- // Firebase만을 신뢰 - localStorage 의존도 제거
+ // localStorage에서 초기 데이터 로드 (캐시) — 빠른 표시용
+ const backupData = localStorage.getItem('calEventsBackup');
+ if (backupData) {
+ try {
+ calEvents = JSON.parse(backupData);
+ console.log('✅ localStorage에서 로드됨:', calEvents);
+ renderCalendar();
+ } catch(e) {
+ console.log('⚠️ localStorage 파싱 실패:', e.message);
  calEvents = {};
+ }
+ } else {
+ calEvents = {};
+ }
+
  let isFirstLoad = true;
  try {
  db.collection('events').onSnapshot((snap) => {
@@ -683,11 +696,18 @@
  if (!firebaseEvents[d.date]) firebaseEvents[d.date] = [];
  firebaseEvents[d.date].push({ id: doc.id, ...d });
  });
+
+ // Firebase 데이터와 로컬이 다를 때만 업데이트
+ if (JSON.stringify(firebaseEvents) !== JSON.stringify(calEvents)) {
  calEvents = firebaseEvents;
  console.log('✅ Firebase 동기화 완료:', calEvents);
  localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
  renderCalendar();
- if (isFirstLoad) { isFirstLoad = false; console.log('✅ 초기 로드 완료'); }
+ } else if (isFirstLoad) {
+ console.log('✅ Firebase 데이터 로드됨 (변경 없음):', calEvents);
+ }
+
+ if (isFirstLoad) { isFirstLoad = false; console.log('✅ Firebase 초기 로드 완료'); }
  const syncStatus = document.getElementById('syncStatus');
  if (syncStatus) {
  syncStatus.classList.remove('offline');
