@@ -34,7 +34,7 @@
  <li><a href="#work" onclick="switchWork('photo'); closeMenu(); return false;">Photo</a></li>
  <li><a href="#work" onclick="switchWork('video'); closeMenu(); return false;">Video</a></li>
  <li><a href="#services" onclick="closeMenu()">Services</a></li>
- <li><a href="#schedule" onclick="closeMenu()">Schedule</a></li>
+ <li><a href="#schedule" onclick="scrollToCalendar(); closeMenu(); return false;">Schedule</a></li>
  <li><a href="#directions" onclick="closeMenu()">오시는길</a></li>
  <li><a href="#contact" onclick="closeMenu()">Contact</a></li>
  </ul>
@@ -288,6 +288,28 @@
  behavior: 'smooth'
  });
  }
+
+function scrollToCalendar() {
+const schedule = document.getElementById('schedule');
+const calWrap = document.querySelector('#schedule .cal-grid-wrap');
+const nav = document.getElementById('nav');
+if (!schedule || !calWrap) return;
+const navHeight = nav ? nav.offsetHeight : 62;
+const calRect = calWrap.getBoundingClientRect();
+const calHeight = calWrap.offsetHeight;
+let targetY;
+if (window.innerWidth < 900) {
+targetY = calRect.top + window.scrollY - navHeight - 8;
+} else {
+const viewportHeight = window.innerHeight;
+targetY = calRect.top + window.scrollY - (viewportHeight - calHeight) / 2;
+}
+const minY = schedule.offsetTop - navHeight;
+window.scrollTo({
+top: Math.max(minY, targetY),
+behavior: 'smooth'
+});
+}
 
  // video 소메뉴 클릭 — 위에 열린 아코디언 닫힐 때 올라오는 높이를 미리 보정해 한 번에 정확하게 이동
  function openAccordionAndScroll(id) {
