@@ -11,6 +11,9 @@
 .cal-cell.today{background:#f0f0f0}
 .cal-cell.today .cal-date{background:transparent;color:var(--text)}
 .cal-cell.past-date .cal-date{color:#ccc}
+/* 과거 주말은 옅은 빨강 */
+.cal-grid > .cal-cell.past-date:nth-child(7n+8) .cal-date,
+.cal-grid > .cal-cell.past-date:nth-child(7n) .cal-date{color:#f0a8a8}
 </style>
 <style>
 .all-day-toggle{width:100%;padding:.7rem;background:var(--bg);color:var(--sub);border:1px solid var(--border);font-family:inherit;font-size:.8rem;letter-spacing:.08em;cursor:pointer;margin-bottom:.6rem;transition:all .2s}
