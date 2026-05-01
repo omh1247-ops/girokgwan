@@ -37,6 +37,15 @@
 <style>
 .services-note{font-size:.78rem;color:var(--sub);text-align:left;line-height:1.7;margin-top:1rem}
 </style>
+<style>
+.cal-event.hold{background:#fbeaea !important;color:#a12727 !important;border:1px dashed #d85b5b}
+.cal-event-badge{display:inline-block;font-size:.55rem;letter-spacing:.04em;border-radius:2px;padding:0 3px;margin-right:3px;vertical-align:1px}
+.cal-event-badge.hold{background:rgba(216,91,91,.18);color:#a12727}
+.cal-event-block.hold{background:#fbeaea !important;color:#a12727 !important;border:1px dashed #d85b5b}
+.cal-time-all-day{margin-bottom:.7rem;display:flex;flex-direction:column;gap:.4rem}
+.cal-time-all-day-item{border:1px dashed #d85b5b;background:#fbeaea;color:#a12727;border-radius:4px;padding:.45rem .6rem;font-size:.75rem;line-height:1.45;cursor:pointer}
+.cal-time-all-day-item.booked{border:1px solid #4d5e3a;background:#4d5e3a;color:#fff}
+</style>
 </head>
 <body>
 
@@ -653,6 +662,13 @@ function sortEvents(events) {
   });
 }
 
+const EVENT_FILTER_MODE = 'all';
+function getVisibleEvents(events, mode = EVENT_FILTER_MODE) {
+  if (mode === 'booked') return events.filter(ev => ev.type === 'booked');
+  if (mode === 'with-hold') return events.filter(ev => ev.type === 'booked' || ev.type === 'hold');
+  return events;
+}
+
  // ─── Firebase + localStorage 이벤트 로드 (실시간 동기화) ───
  function loadEvents() {
  // localStorage에서 초기 데이터 로드 (캐시)
@@ -811,8 +827,33 @@ function sortEvents(events) {
  const events = calEvents[dateStr] || [];
  const emptyMsg = document.getElementById('timeGridEmptyMsg');
 const container = document.getElementById('timeGridContainer');
-const sortedEvents = sortEvents(events.slice());
+const sortedEvents = getVisibleEvents(sortEvents(events.slice()));
 const timedEvents = sortedEvents.filter(ev => ev.startTime);
+const allDayEvents = sortedEvents.filter(ev => !ev.startTime);
+
+const oldAllDayWrap = document.getElementById('timeGridAllDay');
+if (oldAllDayWrap) oldAllDayWrap.remove();
+
+if (allDayEvents.length > 0 && container && container.parentNode) {
+const allDayWrap = document.createElement('div');
+allDayWrap.id = 'timeGridAllDay';
+allDayWrap.className = 'cal-time-all-day';
+allDayWrap.innerHTML = allDayEvents.map(ev => {
+const statusBadge = ev.type === 'hold'
+? '<span class="cal-event-badge hold">조율중</span>'
+: '';
+return `<div class="cal-time-all-day-item ${ev.type}" data-event-id="${ev.id}">
+${statusBadge}<strong>종일</strong> ${ev.title}
+</div>`;
+}).join('');
+container.parentNode.insertBefore(allDayWrap, container);
+allDayWrap.querySelectorAll('.cal-time-all-day-item').forEach(item => {
+item.addEventListener('click', (e) => {
+e.stopPropagation();
+openEditForm(item.dataset.eventId, dateStr);
+});
+});
+}
 
 if (!events.length) emptyMsg.style.display = 'block';
 else emptyMsg.style.display = 'none';
@@ -833,7 +874,8 @@ const startH = parseInt(ev.startTime, 10);
  const endH = ev.endTime ? parseInt(ev.endTime) : startH + 1;
 const block = document.createElement('div');
 block.className = `cal-event-block ${ev.type}`;
-block.textContent = `${ev.startTime}~${ev.endTime || startH + 1} ${ev.title}`;
+const statusPrefix = ev.type === 'hold' ? '[조율중] ' : '';
+block.textContent = `${statusPrefix}${ev.startTime}~${ev.endTime || startH + 1} ${ev.title}`;
 block.style.top = `${startH * 40}px`;
 block.style.left = '50px';
 block.style.right = '0';
@@ -1285,11 +1327,15 @@ renderCalendar();
  if (calEvents[ds]) {
  console.log(`🎯 ${ds}에 일정 있음:`, calEvents[ds]);
  cell.classList.add('has-event');
- const sortedEvents = sortEvents(calEvents[ds]);
+const sortedEvents = getVisibleEvents(sortEvents(calEvents[ds]));
  sortedEvents.forEach(ev => {
  const evEl = document.createElement('div');
  evEl.className = `cal-event ${ev.type}`;
- evEl.textContent = ev.startTime ? `${ev.startTime} ${ev.title}` : ev.title;
+if (ev.type === 'hold') {
+evEl.innerHTML = `<span class="cal-event-badge hold">조율중</span>${ev.startTime ? `${ev.startTime} ${ev.title}` : ev.title}`;
+} else {
+evEl.textContent = ev.startTime ? `${ev.startTime} ${ev.title}` : ev.title;
+}
  cell.appendChild(evEl);
  });
  }
