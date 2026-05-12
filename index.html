@@ -1370,5 +1370,22 @@ evEl.textContent = ev.startTime ? `${ev.startTime} ${ev.title}` : ev.title;
 </script>
 
 <script src="js/render.js"></script>
+<script>
+// URL 복사 시 해시 제거
+document.addEventListener('copy', (e) => {
+  const selection = window.getSelection().toString();
+  if (!selection) {
+    // 텍스트 선택 없이 복사할 때 (Ctrl+C로 URL 복사)
+    e.preventDefault();
+    const cleanUrl = window.location.origin + window.location.pathname;
+    navigator.clipboard.writeText(cleanUrl);
+  }
+});
+
+// 브라우저 주소창에서 해시 제거 (선택사항)
+if (window.location.hash) {
+  history.replaceState(null, '', window.location.pathname);
+}
+</script>
 </body>
 </html>
