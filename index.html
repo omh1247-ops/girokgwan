@@ -545,6 +545,7 @@ closeCalModal('addModal');
  <span style="color:var(--sub);font-size:0.75rem;flex-shrink:0;align-self:center;">~</span>
  <select id="editEvEnd" style="flex:1;"></select>
  </div>
+ <input type="date" id="editEvDate" style="width:100%;margin-bottom:.6rem;padding:.8rem;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font:inherit;">
  <input type="text" id="editEvTitle" placeholder="일정 이름" maxlength="50">
  <div class="cal-edit-form-btns">
  <button class="cal-edit-btn" onclick="updateEditingEvent()">저장</button>
@@ -1122,21 +1123,28 @@ if (!checkAdminPassword()) return;
  if (!ev) return;
  
  document.getElementById('editingEventId').value = eventId;
+ document.getElementById('evDate').value = dateStr;
+ document.getElementById('editEvDate').value = ev.date || dateStr;
  document.getElementById('editEvTitle').value = ev.title;
  document.getElementById('editEvStart').value = ev.startTime || '';
  document.getElementById('editEvEnd').value = ev.endTime || '';
  document.getElementById('editEvType').value = ev.type;
-document.getElementById('editEvAllDay').classList.toggle('active', !ev.startTime);
-toggleEditAllDay(false);
+ document.getElementById('editEvAllDay').classList.toggle('active', !ev.startTime);
+ toggleEditAllDay(false);
+ 
+ const displayDate = (ev.date || dateStr).replace(/(\d{4})-(\d{2})-(\d{2})/, '$1. $2. $3');
+ const _days = ['일','월','화','수','목','금','토'];
+ const _dow = _days[new Date(ev.date || dateStr).getDay()];
+ document.getElementById('addModalTitle').textContent = `${displayDate} (${_dow})`;
  
  // 과거 날짜 여부 판단
  const today = new Date();
  today.setHours(0, 0, 0, 0);
- const targetDate = new Date(dateStr);
+ const targetDate = new Date(ev.date || dateStr);
  const isPastDate = targetDate < today;
  
  // 시간 제한 적용
- applyTimeRestrictions(dateStr, isPastDate);
+ applyTimeRestrictions(ev.date || dateStr, isPastDate);
  
  switchModalView('editFormView');
  }
@@ -1144,52 +1152,61 @@ toggleEditAllDay(false);
  // ─── 일정 업데이트 ───
  function updateEditingEvent() {
  const eventId = document.getElementById('editingEventId').value;
- const dateStr = document.getElementById('evDate').value;
+ const originalDate = document.getElementById('evDate').value;
+ const newDate = document.getElementById('editEvDate').value;
  const title = document.getElementById('editEvTitle').value.trim();
-const isAllDay = document.getElementById('editEvAllDay').classList.contains('active');
-const startTime = isAllDay ? '' : document.getElementById('editEvStart').value;
-const endTime = isAllDay ? '' : document.getElementById('editEvEnd').value;
+ const isAllDay = document.getElementById('editEvAllDay').classList.contains('active');
+ const startTime = isAllDay ? '' : document.getElementById('editEvStart').value;
+ const endTime = isAllDay ? '' : document.getElementById('editEvEnd').value;
  const type = document.getElementById('editEvType').value;
  
-if (!title || (!isAllDay && (!startTime || !endTime))) { alert('모든 필드를 입력하세요.'); return; }
-if (!isAllDay && endTime <= startTime) { alert('종료 시간이 시작 시간보다 늦어야 합니다.'); return; }
-
-const days = ['일','월','화','수','목','금','토'];
-const dow = days[new Date(dateStr).getDay()];
-const formattedDate = dateStr.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1. $2. $3');
-const timeStr = isAllDay ? '종일' : `${startTime}:00 ~ ${endTime}:00`;
-const typeStr = type === 'booked' ? '예약됨' : '조율중';
-const message = `다음 일정을 수정하시겠습니까?\n\n` +
-`날짜: ${formattedDate} (${dow})\n` +
-`시간: ${timeStr}\n` +
-`내용: ${title}\n` +
-`상태: ${typeStr}`;
-if (!confirm(message)) return;
-
-// 과거 일정 경고
-if (!checkPastWarning(dateStr, startTime, endTime, title, type, isAllDay, '수정')) return;
+ if (!newDate || !title || (!isAllDay && (!startTime || !endTime))) { alert('모든 필드를 입력하세요.'); return; }
+ if (!isAllDay && endTime <= startTime) { alert('종료 시간이 시작 시간보다 늦어야 합니다.'); return; }
  
- const evIndex = calEvents[dateStr]?.findIndex(e => e.id === eventId);
+ const days = ['일','월','화','수','목','금','토'];
+ const dow = days[new Date(newDate).getDay()];
+ const formattedDate = newDate.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1. $2. $3');
+ const timeStr = isAllDay ? '종일' : `${startTime}:00 ~ ${endTime}:00`;
+ const typeStr = type === 'booked' ? '예약됨' : '조율중';
+ const message = `다음 일정을 수정하시겠습니까?\n\n` +
+ `날짜: ${formattedDate} (${dow})\n` +
+ `시간: ${timeStr}\n` +
+ `내용: ${title}\n` +
+ `상태: ${typeStr}`;
+ if (!confirm(message)) return;
+ 
+ // 과거 일정 경고
+ if (!checkPastWarning(newDate, startTime, endTime, title, type, isAllDay, '수정')) return;
+ 
+ const evIndex = calEvents[originalDate]?.findIndex(e => e.id === eventId);
  if (evIndex > -1) {
- calEvents[dateStr][evIndex] = { id: eventId, date: dateStr, title, type, startTime, endTime };
+ const updatedEvent = { id: eventId, date: newDate, title, type, startTime, endTime };
+ if (originalDate === newDate) {
+ calEvents[originalDate][evIndex] = updatedEvent;
+ } else {
+ calEvents[originalDate].splice(evIndex, 1);
+ if (!calEvents[originalDate].length) delete calEvents[originalDate];
+ if (!calEvents[newDate]) calEvents[newDate] = [];
+ calEvents[newDate].push(updatedEvent);
+ }
  localStorage.setItem('calEventsBackup', JSON.stringify(calEvents));
- console.log('✅ 일정 수정됨:', { title, startTime, endTime });
+ console.log('✅ 일정 수정됨:', { title, startTime, endTime, date: newDate });
  }
  
- renderTimeGrid(dateStr);
+ renderTimeGrid(newDate);
  switchModalView('timeGridView');
  
  // Firebase 업데이트
  (async () => {
  try {
  if (!eventId.startsWith('tmp_')) {
- await db.collection('events').doc(eventId).update({ title, type, startTime, endTime });
+ await db.collection('events').doc(eventId).update({ date: newDate, title, type, startTime, endTime });
  console.log('✅ Firebase 업데이트 완료');
  }
  } catch (e) {
  console.log('⚠️ Firebase 업데이트 실패:', e.message);
  if (!eventId.startsWith('tmp_')) {
- writeQueue.push({ type: 'update', id: eventId, data: { title, type, startTime, endTime } });
+ writeQueue.push({ type: 'update', id: eventId, data: { date: newDate, title, type, startTime, endTime } });
  }
  }
  })();
