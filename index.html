@@ -1386,6 +1386,32 @@ document.addEventListener('copy', (e) => {
 if (window.location.hash) {
   history.replaceState(null, '', window.location.pathname);
 }
+
+function toggleMusic() {
+  const audio = document.getElementById('bgMusic');
+  const btn = document.getElementById('musicToggle');
+  if (audio.paused) {
+    audio.play();
+    btn.textContent = '🔊';
+  } else {
+    audio.pause();
+    btn.textContent = '🔇';
+  }
+}
+
+// 페이지 로드 시 음악 시작 (선택사항)
+window.addEventListener('load', () => {
+  const audio = document.getElementById('bgMusic');
+  audio.volume = 0.3; // 볼륨 30%
+  // 자동재생 원하면: audio.play();
+});
 </script>
+<div style="position:fixed;bottom:20px;right:20px;z-index:200;background:rgba(255,255,255,0.95);padding:15px 20px;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:flex;align-items:center;gap:12px;">
+  <audio id="bgMusic" loop>
+    <source src="music/background.mp3" type="audio/mpeg">
+  </audio>
+  <button id="musicToggle" onclick="toggleMusic()" style="background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:0;">🔇</button>
+  <span style="font-size:0.75rem;color:var(--sub);letter-spacing:0.05em;">BGM</span>
+</div>
 </body>
 </html>
