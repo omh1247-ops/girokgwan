@@ -9,7 +9,7 @@ async function renderPhotoGalleries() {
       if (!grid) continue;
 
       grid.innerHTML = filenames.map((fn, i) => {
-        const path = category === 'product' ? 'Product' : category === 'personalwork' ? 'Personal Works' : category === 'moment' ? 'Moment' :
+        const path = category === 'product' ? 'Product' : category === 'personalwork' ? 'Personal Works' : category === 'moment' ? 'Moment' : category === 'portraiture' ? 'portraiture' :
                     category.charAt(0).toUpperCase() + category.slice(1);
         return `<div class="photo-item" onclick="openLightbox('${path}/${fn}.jpg')">
           <img loading="lazy" decoding="async" src="${path}/${fn}.jpg" alt="${category} ${i+1}" onerror="removePhotoItem(this)">
