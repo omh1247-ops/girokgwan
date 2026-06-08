@@ -1191,8 +1191,11 @@ if (!confirm(message)) return;
   // 편집 폼의 시간 선택은 과거라도 직접 수정 가능하도록 강제 활성화
   const editStart = document.getElementById('editEvStart');
   const editEnd = document.getElementById('editEvEnd');
-  if (editStart) { editStart.disabled = false; editStart.style.opacity = ''; }
-  if (editEnd) { editEnd.disabled = false; editEnd.style.opacity = ''; }
+  if (editStart) { editStart.disabled = false; editStart.style.opacity = '1'; editStart.style.pointerEvents = 'auto'; }
+  if (editEnd) { editEnd.disabled = false; editEnd.style.opacity = '1'; editEnd.style.pointerEvents = 'auto'; }
+  // 수정 폼의 시간 옵션 전체 활성화
+  if (editStart && editStart.options) Array.from(editStart.options).forEach(opt => { opt.disabled = false; });
+  if (editEnd && editEnd.options) Array.from(editEnd.options).forEach(opt => { opt.disabled = false; });
  
  switchModalView('editFormView');
  }
