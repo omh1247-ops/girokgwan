@@ -989,6 +989,8 @@ endSel.disabled = allDay;
 startSel.style.opacity = allDay ? '0.4' : '';
 endSel.style.opacity = allDay ? '0.4' : '';
  _updateNewTimeWrap(allDay);
+ const container = document.getElementById('timeGridContainer');
+ if (container) container.style.display = allDay ? 'none' : '';
 }
 
 // 새 일정의 ALL DAY 토글 시 시간 입력 래퍼 숨김 처리
@@ -1009,6 +1011,8 @@ endSel.disabled = allDay;
 startSel.style.opacity = allDay ? '0.4' : '';
 endSel.style.opacity = allDay ? '0.4' : '';
  _updateEditTimeWrap(allDay);
+ const container = document.getElementById('timeGridContainer');
+ if (container) container.style.display = allDay ? 'none' : '';
 }
 
 // 수정 폼의 ALL DAY 토글 시 시간 입력 래퍼 숨김 처리
@@ -1029,18 +1033,10 @@ const currentHour = today.getHours();
   if (!select) return;
   
   if (isPastDate) {
-    // 과거 날짜
-    // - 새 일정(newEv*)는 과거 옵션 비활성화 유지
-    // - 수정(editEv*)는 과거여도 비활성화하지 않음(편집 허용)
-    if (id.startsWith('editEv')) {
-      Array.from(select.options).forEach(opt => {
-        opt.disabled = false;
-      });
-    } else {
-      Array.from(select.options).forEach(opt => {
-        if (opt.value) opt.disabled = true;
-      });
-    }
+    // 과거 날짜: 모두 활성화 (새 일정/수정 모두 과거 시간 선택 허용)
+    Array.from(select.options).forEach(opt => {
+      opt.disabled = false;
+    });
   } else if (isToday) {
     // 오늘 날짜: 현재 시각 이전 옵션만 disabled
     Array.from(select.options).forEach(opt => {
