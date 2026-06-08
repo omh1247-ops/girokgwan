@@ -49,13 +49,13 @@
 </style>
 <style>
 .cal-cell.has-allday {
-  background: #e6f4ea;
+  background: #fdecea; /* 연한 빨강 */
 }
 .cal-cell.has-allday.today {
-  background: #e6f4ea;
+  background: #fdecea;
 }
 .cal-cell.has-allday.past-date {
-  background: #f0f8f0;
+  background: #fff5f5; /* 과거일 때 더 옅은 빨강 */
 }
 </style>
 </head>
@@ -525,7 +525,7 @@ closeCalModal('addModal');
  <option value="hold">조율중</option>
  </select>
 <button type="button" class="all-day-toggle" id="newEvAllDay" onclick="toggleNewAllDay()">ALL DAY</button>
- <div style="display:flex;gap:.5rem;margin-bottom:.6rem;">
+<div id="newEvTimeWrap" style="display:flex;gap:.5rem;margin-bottom:.6rem;">
  <select id="newEvStart" style="flex:1;"></select>
  <span style="color:var(--sub);font-size:0.75rem;flex-shrink:0;align-self:center;">~</span>
  <select id="newEvEnd" style="flex:1;"></select>
@@ -552,7 +552,7 @@ closeCalModal('addModal');
  <option value="hold">조율중</option>
  </select>
 <button type="button" class="all-day-toggle" id="editEvAllDay" onclick="toggleEditAllDay()">ALL DAY</button>
- <div style="display:flex;gap:.5rem;margin-bottom:.6rem;">
+ <div id="editEvTimeWrap" style="display:flex;gap:.5rem;margin-bottom:.6rem;">
  <select id="editEvStart" style="flex:1;"></select>
  <span style="color:var(--sub);font-size:0.75rem;flex-shrink:0;align-self:center;">~</span>
  <select id="editEvEnd" style="flex:1;"></select>
@@ -983,6 +983,14 @@ startSel.disabled = allDay;
 endSel.disabled = allDay;
 startSel.style.opacity = allDay ? '0.4' : '';
 endSel.style.opacity = allDay ? '0.4' : '';
+ _updateNewTimeWrap(allDay);
+}
+
+// 새 일정의 ALL DAY 토글 시 시간 입력 래퍼 숨김 처리
+function _updateNewTimeWrap(allDay) {
+  const wrap = document.getElementById('newEvTimeWrap');
+  if (!wrap) return;
+  wrap.style.display = allDay ? 'none' : 'flex';
 }
 
 function toggleEditAllDay() {
@@ -995,6 +1003,14 @@ startSel.disabled = allDay;
 endSel.disabled = allDay;
 startSel.style.opacity = allDay ? '0.4' : '';
 endSel.style.opacity = allDay ? '0.4' : '';
+ _updateEditTimeWrap(allDay);
+}
+
+// 수정 폼의 ALL DAY 토글 시 시간 입력 래퍼 숨김 처리
+function _updateEditTimeWrap(allDay) {
+  const wrap = document.getElementById('editEvTimeWrap');
+  if (!wrap) return;
+  wrap.style.display = allDay ? 'none' : 'flex';
 }
 
 // ─── 오늘 날짜의 과거 시간 disable ───
@@ -1148,6 +1164,8 @@ if (!confirm(message)) return;
  document.getElementById('editEvEnd').value = ev.endTime || '';
  document.getElementById('editEvType').value = ev.type;
  document.getElementById('editEvAllDay').classList.toggle('active', !ev.startTime);
+ // hide time inputs if this is an all-day event
+ _updateEditTimeWrap(!ev.startTime);
  toggleEditAllDay(false);
  
  const displayDate = (ev.date || dateStr).replace(/(\d{4})-(\d{2})-(\d{2})/, '$1. $2. $3');
