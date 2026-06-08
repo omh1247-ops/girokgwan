@@ -47,6 +47,17 @@
 .cal-time-all-day-item{border:1px dashed #d85b5b;background:#fbeaea;color:#a12727;border-radius:4px;padding:.45rem .6rem;font-size:.75rem;line-height:1.45;cursor:pointer}
 .cal-time-all-day-item.booked{border:1px solid #4d5e3a;background:#4d5e3a;color:#fff}
 </style>
+<style>
+.cal-cell.has-allday {
+  background: #e6f4ea;
+}
+.cal-cell.has-allday.today {
+  background: #e6f4ea;
+}
+.cal-cell.has-allday.past-date {
+  background: #f0f8f0;
+}
+</style>
 </head>
 <body>
 
@@ -927,17 +938,22 @@ toggleNewAllDay(false);
  
  // + 추가 / 수정 버튼 표시 여부
  const modalAddBtn = document.getElementById('modalAddBtn');
- if (modalAddBtn) {
- if (isPastDate) {
- // 과거 날짜: "수정" 버튼
- modalAddBtn.textContent = '수정';
- modalAddBtn.onclick = () => openEditList(dateStr);
- } else {
- // 미래/오늘: "+ 추가" 버튼
- modalAddBtn.textContent = '+ 추가';
- modalAddBtn.onclick = () => switchModalView('addFormView');
- }
- }
+  if (modalAddBtn) {
+    if (isPastDate) {
+      // 과거 날짜: "수정" 버튼
+      modalAddBtn.textContent = '수정';
+      // 과거 날짜라도 일정이 없으면 바로 추가/수정 폼 열기(관리자 인증 포함)
+      if (calEvents && calEvents[dateStr] && calEvents[dateStr].length) {
+        modalAddBtn.onclick = () => openEditList(dateStr);
+      } else {
+        modalAddBtn.onclick = () => switchModalView('addFormView');
+      }
+    } else {
+      // 미래/오늘: "+ 추가" 버튼
+      modalAddBtn.textContent = '+ 추가';
+      modalAddBtn.onclick = () => switchModalView('addFormView');
+    }
+  }
  
  // 시간표 렌더링
  renderTimeGrid(dateStr);
@@ -996,10 +1012,18 @@ const currentHour = today.getHours();
   if (!select) return;
   
   if (isPastDate) {
-    // 과거 날짜: 모든 옵션 disabled
-    Array.from(select.options).forEach(opt => {
-      if (opt.value) opt.disabled = true;
-    });
+    // 과거 날짜
+    // - 새 일정(newEv*)는 과거 옵션 비활성화 유지
+    // - 수정(editEv*)는 과거여도 비활성화하지 않음(편집 허용)
+    if (id.startsWith('editEv')) {
+      Array.from(select.options).forEach(opt => {
+        opt.disabled = false;
+      });
+    } else {
+      Array.from(select.options).forEach(opt => {
+        if (opt.value) opt.disabled = true;
+      });
+    }
   } else if (isToday) {
     // 오늘 날짜: 현재 시각 이전 옵션만 disabled
     Array.from(select.options).forEach(opt => {
@@ -1342,10 +1366,17 @@ renderCalendar();
  cell.appendChild(dateEl);
 
  // 현재 월의 이벤트만 표시
- if (calEvents[ds]) {
- console.log(`🎯 ${ds}에 일정 있음:`, calEvents[ds]);
- cell.classList.add('has-event');
-const sortedEvents = getVisibleEvents(sortEvents(calEvents[ds]));
+    if (calEvents[ds]) {
+     console.log(`🎯 ${ds}에 일정 있음:`, calEvents[ds]);
+     cell.classList.add('has-event');
+    // 해당 날짜에 종일(시작시간 없는) 일정이 하나라도 있으면 has-allday 클래스 추가
+    try {
+      const hasAllDay = (calEvents[ds] || []).some(ev => !ev.startTime);
+      if (hasAllDay) cell.classList.add('has-allday');
+    } catch (e) {
+      console.error('has-allday 체크 중 오류', e);
+    }
+    const sortedEvents = getVisibleEvents(sortEvents(calEvents[ds]));
  sortedEvents.forEach(ev => {
  const evEl = document.createElement('div');
  evEl.className = `cal-event ${ev.type}`;
