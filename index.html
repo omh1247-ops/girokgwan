@@ -851,12 +851,12 @@ if (allDayEvents.length > 0 && container && container.parentNode) {
 const allDayWrap = document.createElement('div');
 allDayWrap.id = 'timeGridAllDay';
 allDayWrap.className = 'cal-time-all-day';
-allDayWrap.innerHTML = allDayEvents.map(ev => {
+  allDayWrap.innerHTML = allDayEvents.map(ev => {
 const statusBadge = ev.type === 'hold'
 ? '<span class="cal-event-badge hold">조율중</span>'
 : '';
 return `<div class="cal-time-all-day-item ${ev.type}" data-event-id="${ev.id}">
-${statusBadge}<strong>종일</strong> ${ev.title}
+${statusBadge}${ev.title}
 </div>`;
 }).join('');
 container.parentNode.insertBefore(allDayWrap, container);
@@ -868,8 +868,10 @@ openEditForm(item.dataset.eventId, dateStr);
 });
 }
 
+const hasOnlyAllDay = events.length > 0 && timedEvents.length === 0;
 if (!events.length) emptyMsg.style.display = 'block';
 else emptyMsg.style.display = 'none';
+if (container) container.style.display = hasOnlyAllDay ? 'none' : '';
  
  // 시간 라벨과 셀 생성
  let html = '';
