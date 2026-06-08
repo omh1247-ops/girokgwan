@@ -1180,7 +1180,12 @@ if (!confirm(message)) return;
  const isPastDate = targetDate < today;
  
  // 시간 제한 적용
- applyTimeRestrictions(ev.date || dateStr, isPastDate);
+  applyTimeRestrictions(ev.date || dateStr, isPastDate);
+  // 편집 폼의 시간 선택은 과거라도 직접 수정 가능하도록 강제 활성화
+  const editStart = document.getElementById('editEvStart');
+  const editEnd = document.getElementById('editEvEnd');
+  if (editStart) { editStart.disabled = false; editStart.style.opacity = ''; }
+  if (editEnd) { editEnd.disabled = false; editEnd.style.opacity = ''; }
  
  switchModalView('editFormView');
  }
