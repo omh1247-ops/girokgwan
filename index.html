@@ -692,7 +692,7 @@ behavior: 'smooth'
 }
  // ─── 상태 ───
  let calYear, calMonth, calEvents = {};
- const ADMIN_PW = 'audgns12'; // ← 비밀번호 변경 시 여기만 수정
+ const ADMIN_PWS = ['audgns12', '명훈12']; // ← 비밀번호 목록
 const isAdmin = () => false;
  const editingEventId = null; // 수정 중인 이벤트 ID
  let writeQueue = []; // Firebase 쓰기 실패 시 대기열
@@ -707,7 +707,7 @@ closeCalModal('addModal');
 function checkAdminPassword() {
 const pw = prompt('관리자 비밀번호를 입력하세요:');
 if (pw === null) return false;
-if (pw === ADMIN_PW) return true;
+if (ADMIN_PWS.includes(pw)) return true;
 alert('비밀번호가 틀렸습니다.');
 return false;
 }
