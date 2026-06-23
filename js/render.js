@@ -4,14 +4,34 @@ async function renderPhotoGalleries() {
     const res = await fetch('data/photos.json');
     const photos = await res.json();
 
+    // Fisher-Yates shuffle
+    function shuffleArray(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+    }
+
     for (const [category, filenames] of Object.entries(photos)) {
+      // `personalwork` 데이터는 보관하되 홈페이지에서는 숨기도록 처리합니다.
+      if (category === 'personalwork') continue;
       const grid = document.querySelector(`#sec-${category} .photo-grid`);
       if (!grid) continue;
 
-      grid.innerHTML = filenames.map((fn, i) => {
+      // 랜덤 배치: 원본 배열을 건드리지 않도록 복사 후 셔플
+      const items = filenames.slice();
+      shuffleArray(items);
+
+      grid.innerHTML = items.map((fn, i) => {
         const path = category === 'product' ? 'Product' : category === 'personalwork' ? 'Personal Works' : category === 'moment' ? 'Moment' : category === 'portraiture' ? 'portraiture' :
                     category.charAt(0).toUpperCase() + category.slice(1);
-        return `<div class="photo-item" onclick="openLightbox('${path}/${fn}.jpg')">
+        // portraiture에서 특정 파일에만 희미한 테두리 적용
+        let extraClass = '';
+        if (category === 'portraiture') {
+          const highlightList = ['portrait17', 'portrait22', 'portrait23'];
+          if (highlightList.includes(fn)) extraClass = ' faint-border';
+        }
+        return `<div class="photo-item${extraClass}" onclick="openLightbox('${path}/${fn}.jpg')">
           <img loading="lazy" decoding="async" src="${path}/${fn}.jpg" alt="${category} ${i+1}" onerror="removePhotoItem(this)">
         </div>`;
       }).join('');

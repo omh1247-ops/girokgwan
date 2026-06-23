@@ -58,6 +58,12 @@
   background: #fff5f5; /* 과거일 때 더 옅은 빨강 */
 }
 </style>
+<style>
+/* Make the faint border visible in normal state by applying to the image */
+.photo-item.faint-border{border-radius:8px}
+.photo-item.faint-border img{box-shadow:0 0 0 1.8px rgba(0,0,0,0.14);border-radius:8px;transition:box-shadow .22s ease}
+@media (max-width:900px){.photo-item.faint-border img{box-shadow:0 0 0 1.2px rgba(0,0,0,0.12)}}
+</style>
 </head>
 <body>
 

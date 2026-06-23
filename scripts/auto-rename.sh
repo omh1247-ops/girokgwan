@@ -40,6 +40,10 @@ rename_folder "Food"           "food"
 rename_folder "Moment"         "moment"
 rename_folder "Personal Works" "personalwork"
 
+# 먼저 순번 재정리 (빈 번호 제거)
+echo "🔢 사진 순번 재정리 중..." >> "$BASE/scripts/rename-log.txt"
+python3 "$BASE/scripts/resequence_photos.py" >> "$BASE/scripts/rename-log.txt" 2>&1 || echo "resequence failed" >> "$BASE/scripts/rename-log.txt"
+
 # 모든 폴더 크기 표준화
 echo "📐 사진 크기 표준화 중..." >> "$BASE/scripts/rename-log.txt"
 python3 "$BASE/scripts/standardize-sizes.py" >> "$BASE/scripts/rename-log.txt" 2>&1
