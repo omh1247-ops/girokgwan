@@ -16,7 +16,13 @@
     "portrait14",
     "portrait15",
     "portrait16",
-    "portrait17"
+    "portrait17",
+    "portrait18",
+    "portrait19",
+    "portrait20",
+    "portrait21",
+    "portrait22",
+    "portrait23"
   ],
   "product": [
     "product01",
@@ -60,7 +66,9 @@
     "moment19",
     "moment20",
     "moment21",
-    "moment22"
+    "moment22",
+    "moment23",
+    "moment24"
   ],
   "personalwork": [
     "personalwork01",
