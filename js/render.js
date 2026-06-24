@@ -23,8 +23,7 @@ async function renderPhotoGalleries() {
       shuffleArray(items);
 
       grid.innerHTML = items.map((fn, i) => {
-        const path = category === 'product' ? 'Product' : category === 'personalwork' ? 'Personal Works' : category === 'moment' ? 'Moment' : category === 'portraiture' ? 'portraiture' :
-                    category.charAt(0).toUpperCase() + category.slice(1);
+        const path = category === 'portraiture' ? 'portraiture' : category.charAt(0).toUpperCase() + category.slice(1);
         // portraiture에서 특정 파일에만 희미한 테두리 적용
         let extraClass = '';
         if (category === 'portraiture') {

@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 /**
- * 사진 폴더를 감시하고 파일이 추가되면 자동으로 이름 변경
+ * 사진 폴더를 감시하고, 파일이 추가/삭제되면 자동으로 01, 02, 03... 순서로 재정렬
+ * - 사진 추가: 마지막 번호 다음 숫자로 자동 이름 변경
+ * - 사진 삭제: 남은 사진들을 빈 번호 없이 01부터 다시 오름차순 정렬
+ * - 압축/리사이즈는 하지 않음, photos.json도 건드리지 않음
+ *   (그 부분은 VS Code Copilot Chat에서 "사진업데이트" 입력 시 처리됨)
  * 사용: node watch-rename.js
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const BASE = '/Users/ommyunghun/Documents/GitHub/girokgwan';
 const FOLDERS = [
@@ -17,91 +20,102 @@ const FOLDERS = [
   { dir: 'Personal Works', prefix: 'personalwork' }
 ];
 
-const watchedFolders = {};
+const IMAGE_EXT_RE = /^(jpg|jpeg|png|gif|webp|heic|heif)$/i;
 
-console.log('📸 사진 폴더 감시 시작...');
+const processing = {};
+const debounceTimers = {};
+
+console.log('📸 사진 폴더 감시 시작 (추가/삭제 시 자동 재정렬, 압축 없음)...');
 console.log(`감시 중인 폴더: ${FOLDERS.map(f => f.dir).join(', ')}\n`);
 
 FOLDERS.forEach(({ dir, prefix }) => {
   const folderPath = path.join(BASE, dir);
-  
+
   if (!fs.existsSync(folderPath)) {
     console.log(`⚠️  폴더 없음: ${dir}`);
     return;
   }
 
-  // 초기 파일 개수 저장
-  const files = fs.readdirSync(folderPath).filter(f => isImageFile(f));
-  watchedFolders[dir] = new Set(files);
+  processing[dir] = false;
 
-  // 폴더 감시
   fs.watch(folderPath, (eventType, filename) => {
     if (!filename || !isImageFile(filename)) return;
+    if (processing[dir]) return;
 
-    const filePath = path.join(folderPath, filename);
-
-    // 파일이 실제로 존재하는지 확인 (쓰기 완료 대기)
-    setTimeout(() => {
-      if (!fs.existsSync(filePath)) return;
-
-      const currentFiles = new Set(
-        fs.readdirSync(folderPath).filter(f => isImageFile(f))
-      );
-
-      // 새 파일이 추가되었는지 확인
-      const newFile = Array.from(currentFiles).find(f => !watchedFolders[dir].has(f));
-      
-      if (newFile) {
-        console.log(`📌 새 파일 감지: ${dir}/${newFile}`);
-        renameFile(folderPath, newFile, prefix);
-        watchedFolders[dir] = currentFiles;
-      }
-    }, 500);
+    if (debounceTimers[dir]) clearTimeout(debounceTimers[dir]);
+    debounceTimers[dir] = setTimeout(() => {
+      reorganizeFolder(folderPath, dir, prefix);
+    }, 600);
   });
+
+  reorganizeFolder(folderPath, dir, prefix, true);
 });
 
-/**
- * 이미지 파일인지 확인
- */
 function isImageFile(filename) {
-  const ext = filename.split('.').pop().toLowerCase();
-  return /^(jpg|jpeg|png|gif|webp|heic|heif)$/.test(ext);
+  const ext = filename.split('.').pop();
+  return IMAGE_EXT_RE.test(ext);
 }
 
-/**
- * 파일 이름 변경
- */
-function renameFile(folderPath, filename, prefix) {
-  const filePath = path.join(folderPath, filename);
-  const ext = filename.split('.').pop().toLowerCase();
+function getImageFiles(folderPath) {
+  return fs.readdirSync(folderPath).filter(isImageFile);
+}
 
-  // 이미 올바른 이름이면 건너뜀
-  if (filename.match(new RegExp(`^${prefix}\\d+\\.${ext}$`))) {
-    console.log(`✅ 이미 올바른 이름: ${filename}`);
-    return;
-  }
-
-  // 다음 빈 번호 찾기
-  let n = 1;
-  const files = fs.readdirSync(folderPath);
-  while (files.includes(`${prefix}${String(n).padStart(2, '0')}.jpg`)) {
-    n++;
-  }
-
-  const newName = `${prefix}${String(n).padStart(2, '0')}.${ext}`;
-  const newPath = path.join(folderPath, newName);
-
+function reorganizeFolder(folderPath, dir, prefix, silent = false) {
+  processing[dir] = true;
   try {
-    fs.renameSync(filePath, newPath);
-    const folderName = folderPath.split('/').pop();
-    console.log(`✨ 이름 변경: ${filename} → ${newName}`);
-    
-    // 로그 기록
-    const logPath = path.join(BASE, 'scripts', 'rename-log.txt');
-    const timestamp = new Date().toLocaleString('ko-KR');
-    fs.appendFileSync(logPath, `${timestamp} | ${folderName}/${filename} → ${newName}\n`);
+    const files = getImageFiles(folderPath);
+    const pattern = new RegExp(`^${prefix}(\\d+)\\.[a-zA-Z]+$`);
+
+    const known = [];
+    const unknown = [];
+
+    files.forEach(f => {
+      const m = f.match(pattern);
+      if (m) {
+        known.push({ file: f, num: parseInt(m[1], 10) });
+      } else {
+        const stat = fs.statSync(path.join(folderPath, f));
+        unknown.push({ file: f, mtime: stat.mtimeMs });
+      }
+    });
+
+    known.sort((a, b) => a.num - b.num);
+    unknown.sort((a, b) => a.mtime - b.mtime);
+
+    const orderedFiles = [...known.map(k => k.file), ...unknown.map(u => u.file)];
+    if (orderedFiles.length === 0) return;
+
+    const targets = orderedFiles.map((file, i) => {
+      const ext = file.split('.').pop().toLowerCase();
+      const num = String(i + 1).padStart(2, '0');
+      return { oldFile: file, newName: `${prefix}${num}.${ext}` };
+    });
+
+    const needsRename = targets.filter(t => t.oldFile !== t.newName);
+
+    if (needsRename.length === 0) {
+      if (!silent) console.log(`✅ [${dir}] 변경 없음 (이미 01부터 빈틈없이 정렬됨)`);
+      return;
+    }
+
+    const tempStep = needsRename.map((t, i) => {
+      const ext = t.oldFile.split('.').pop();
+      const tempName = `__tmp_${Date.now()}_${i}.${ext}`;
+      fs.renameSync(path.join(folderPath, t.oldFile), path.join(folderPath, tempName));
+      return { tempName, newName: t.newName, oldFile: t.oldFile };
+    });
+
+    tempStep.forEach(({ tempName, newName }) => {
+      fs.renameSync(path.join(folderPath, tempName), path.join(folderPath, newName));
+    });
+
+    console.log(`📌 [${dir}] 재정렬 완료 (${needsRename.length}개 변경):`);
+    needsRename.forEach(t => console.log(`   ${t.oldFile} → ${t.newName}`));
+    console.log('');
   } catch (err) {
-    console.error(`❌ 오류: ${err.message}`);
+    console.error(`❌ [${dir}] 오류: ${err.message}`);
+  } finally {
+    setTimeout(() => { processing[dir] = false; }, 300);
   }
 }
 
