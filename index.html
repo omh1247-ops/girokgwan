@@ -115,7 +115,7 @@
 <nav id="nav">
  <a class="nav-logo" href="#hero" ><img loading="lazy" decoding="async" src="logo.png/logo-text.png" alt="기록관" style="height:18px;width:auto;display:block;"></a>
  <div class="nav-player" id="navPlayer">
-  <audio id="bgMusic" loop preload="auto" style="display:none">
+  <audio id="bgMusic" loop preload="auto" muted autoplay style="display:none">
     <source src="music/background.mp3" type="audio/mpeg">
   </audio>
   <div class="player-controls" role="group" aria-label="Audio controls">
@@ -1597,8 +1597,10 @@ function setPlayIcon(isPlaying) {
 function playPause() {
   if (audio.paused) {
     audio.play();
+    userPausedManually = false;
   } else {
     audio.pause();
+    userPausedManually = true;
   }
 }
 
@@ -1624,10 +1626,37 @@ audio.addEventListener('ended', () => nextTrack());
 loadTrack(0, false);
 audio.volume = 0.3;
 
-// 시도: 자동재생 (브라우저 정책에 따라 차단될 수 있음)
-window.addEventListener('load', () => {
-  audio.play().catch(() => {});
-});
+// 자동재생 (음소거 상태로 시작)
+audio.muted = true;
+audio.play().catch(() => {});
+
+// 사용자 일시정지 의도 추적
+let hasUnmuted = false;
+let userPausedManually = false;
+
+// 사용자 첫 상호작용 시 음소거 해제
+function unmutAudio() {
+  if (audio.muted && !hasUnmuted) {
+    audio.muted = false;
+    hasUnmuted = true;
+    // 사용자가 의도적으로 멈췄지 않으면 재생
+    if (!userPausedManually) {
+      audio.play().catch(() => {});
+    }
+    // 한 번만 실행하도록 제거
+    document.removeEventListener('click', unmutAudio);
+    document.removeEventListener('keydown', unmutAudio);
+    document.removeEventListener('touchstart', unmutAudio);
+    document.removeEventListener('scroll', unmutAudio);
+    document.removeEventListener('wheel', unmutAudio);
+  }
+}
+
+document.addEventListener('click', unmutAudio);
+document.addEventListener('keydown', unmutAudio);
+document.addEventListener('touchstart', unmutAudio);
+document.addEventListener('scroll', unmutAudio);
+document.addEventListener('wheel', unmutAudio);
 
 /* Video Modal Functions */
 let videoWasPlaying = false;
