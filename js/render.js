@@ -30,7 +30,9 @@ async function renderPhotoGalleries() {
           const highlightList = ['portrait17', 'portrait22', 'portrait23'];
           if (highlightList.includes(fn)) extraClass = ' faint-border';
         }
-        return `<div class="photo-item${extraClass}" onclick="openLightbox('${path}/${fn}.jpg')">
+        const randomRatio = Math.random();
+        const widthPercent = 90 + Math.round(randomRatio * 10); // 90%~100%
+        return `<div class="photo-item${extraClass}" style="width:${widthPercent}%;margin-left:auto;margin-right:auto;" onclick="openLightbox('${path}/${fn}.jpg')">
           <img loading="lazy" decoding="async" src="${path}/${fn}.jpg" alt="${category} ${i+1}" onerror="removePhotoItem(this)">
         </div>`;
       }).join('');
