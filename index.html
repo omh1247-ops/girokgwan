@@ -64,11 +64,75 @@
 .photo-item.faint-border img{box-shadow:0 0 0 1.8px rgba(0,0,0,0.14);border-radius:8px;transition:box-shadow .22s ease}
 @media (max-width:900px){.photo-item.faint-border img{box-shadow:0 0 0 1.2px rgba(0,0,0,0.12)}}
 </style>
+<style>
+/* BGM player (minimal, mono-tone) */
+.nav-player{display:flex;align-items:flex-end;gap:10px;min-width:0}
+.nav-player audio{display:none}
+.player-controls{display:flex;align-items:center;gap:8px}
+.player-btn{background:none;border:none;padding:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;line-height:1}
+.player-btn svg{width:18px;height:18px;display:block}
+.player-btn:focus-visible{outline:2px solid rgba(0,0,0,0.2);outline-offset:2px}
+.player-info-box{width:145px;overflow:hidden;display:flex;align-items:center;position:relative}
+.player-info{font-size:0.8rem;color:var(--sub);white-space:nowrap;animation:marquee 20s linear infinite;display:inline-block}
+.player-info.marquee-reset{animation:none}
+@keyframes marquee{0%{transform:translateX(145px);}100%{transform:translateX(-100%);}}
+@media (max-width:900px){
+  .player-info-box{display:none}
+  .player-btn svg{width:16px;height:16px}
+  .nav-player{gap:6px}
+}
+@media (max-width:480px){
+  .nav-player{display:none}
+}
+</style>
+<style>
+/* Video Modal */
+.video-modal{display:none;position:fixed;inset:0;z-index:998;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:1rem}
+.video-modal.active{display:flex}
+.video-modal-content{position:relative;width:100%;max-width:90vw;aspect-ratio:16/9}
+.video-modal iframe{width:100%;height:100%;border:none;display:block}
+.video-modal-close{position:fixed;top:1.5rem;right:1.5rem;color:#fff;font-size:2rem;cursor:pointer;line-height:1;opacity:.7;background:none;border:none;padding:0;z-index:1000}
+.video-modal-close:hover{opacity:1}
+.video-nav-arrow{position:fixed;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;opacity:.6;padding:.5rem;z-index:1000;line-height:1;display:none}
+.video-modal.active .video-nav-arrow{display:block}
+.video-nav-arrow:hover{opacity:1}
+.video-nav-arrow.prev{left:1.5rem}
+.video-nav-arrow.next{right:1.5rem}
+@media (max-width:900px){.video-modal-content{max-width:95vw;aspect-ratio:16/9}.video-modal-close{font-size:1.6rem;top:1rem;right:1rem}.video-nav-arrow{font-size:1.4rem;padding:.4rem;left:1rem!important;right:1rem!important}.video-nav-arrow.prev{left:1rem!important}.video-nav-arrow.next{right:1rem!important}}
+</style>
 </head>
 <body>
 
+<div class="video-modal" id="videoModal">
+  <button class="video-nav-arrow prev" onclick="prevVideo()">←</button>
+  <button class="video-nav-arrow next" onclick="nextVideo()">→</button>
+  <div class="video-modal-content">
+    <iframe id="videoFrame" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+  <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
+</div>
+
 <nav id="nav">
  <a class="nav-logo" href="#hero" ><img loading="lazy" decoding="async" src="logo.png/logo-text.png" alt="기록관" style="height:18px;width:auto;display:block;"></a>
+ <div class="nav-player" id="navPlayer">
+  <audio id="bgMusic" loop preload="auto" style="display:none">
+    <source src="music/background.mp3" type="audio/mpeg">
+  </audio>
+  <div class="player-controls" role="group" aria-label="Audio controls">
+    <button class="player-btn" id="prevBtn" aria-label="Previous track" title="Previous">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 12L18 16.5V7.5L11.5 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="player-btn" id="playPauseBtn" aria-label="Play" title="Play">
+      <svg class="icon-play" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7L8 5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="player-btn" id="nextBtn" aria-label="Next track" title="Next">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 12L6 7.5V16.5L12.5 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="player-info-box">
+    <div class="player-info" id="playerInfo">Talkie Walkie - afternoon</div>
+  </div>
+ </div>
  <ul class="nav-links" id="navLinks">
  <li><a href="#about" onclick="closeMenu()">About</a></li>
  <li><a href="#work" onclick="switchWork('photo'); closeMenu(); return false;">Photo</a></li>
@@ -1491,31 +1555,148 @@ if (window.location.hash) {
   history.replaceState(null, '', window.location.pathname);
 }
 
-function toggleMusic() {
-  const audio = document.getElementById('bgMusic');
-  const btn = document.getElementById('musicToggle');
-  if (audio.paused) {
-    audio.play();
-    btn.textContent = '🔊';
-  } else {
-    audio.pause();
-    btn.textContent = '🔇';
+/* Audio player: playlist + controls inserted into nav */
+const tracks = [
+  { src: 'music/background.mp3', artist: 'Talkie Walkie', title: 'afternoon' }
+];
+let currentTrack = 0;
+const audio = document.getElementById('bgMusic');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const playBtn = document.getElementById('playPauseBtn');
+const infoEl = document.getElementById('playerInfo');
+
+function loadTrack(index, autoplay = false) {
+  currentTrack = (index + tracks.length) % tracks.length;
+  audio.src = tracks[currentTrack].src;
+  audio.load();
+  updateInfo();
+  if (autoplay) {
+    audio.play().catch(() => {});
   }
 }
 
-// 페이지 로드 시 음악 시작 (선택사항)
+function updateInfo() {
+  if (!infoEl) return;
+  const newText = `${tracks[currentTrack].artist} - ${tracks[currentTrack].title}`;
+  infoEl.textContent = newText;
+  // Restart marquee animation
+  infoEl.classList.add('marquee-reset');
+  setTimeout(() => infoEl.classList.remove('marquee-reset'), 10);
+}
+
+function setPlayIcon(isPlaying) {
+  if (!playBtn) return;
+  playBtn.innerHTML = isPlaying
+    ? '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="5" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="5" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7L8 5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  playBtn.title = isPlaying ? 'Pause' : 'Play';
+  playBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+}
+
+function playPause() {
+  if (audio.paused) {
+    audio.play();
+  } else {
+    audio.pause();
+  }
+}
+
+function prevTrack() {
+  const prevIndex = (currentTrack - 1 + tracks.length) % tracks.length;
+  loadTrack(prevIndex, true);
+}
+
+function nextTrack() {
+  const nextIndex = (currentTrack + 1) % tracks.length;
+  loadTrack(nextIndex, true);
+}
+
+if (prevBtn) prevBtn.addEventListener('click', prevTrack);
+if (nextBtn) nextBtn.addEventListener('click', nextTrack);
+if (playBtn) playBtn.addEventListener('click', playPause);
+
+audio.addEventListener('play', () => setPlayIcon(true));
+audio.addEventListener('pause', () => setPlayIcon(false));
+audio.addEventListener('ended', () => nextTrack());
+
+// 초기 로드
+loadTrack(0, false);
+audio.volume = 0.3;
+
+// 시도: 자동재생 (브라우저 정책에 따라 차단될 수 있음)
 window.addEventListener('load', () => {
-  const audio = document.getElementById('bgMusic');
-  audio.volume = 0.3; // 볼륨 30%
-  // 자동재생 원하면: audio.play();
+  audio.play().catch(() => {});
+});
+
+/* Video Modal Functions */
+let videoWasPlaying = false;
+let currentVideoSection = null;
+let currentVideoIndex = null;
+window.allVideos = { commercial: [], music: [], sketch: [] };
+
+function openVideoModal(videoId, section, index) {
+  const modal = document.getElementById('videoModal');
+  const iframe = document.getElementById('videoFrame');
+  
+  // 배경음악 일시정지
+  if (audio && !audio.paused) {
+    videoWasPlaying = true;
+    audio.pause();
+  }
+  
+  currentVideoSection = section;
+  currentVideoIndex = index;
+  iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function prevVideo() {
+  if (!currentVideoSection || !window.allVideos[currentVideoSection].length) return;
+  const videos = window.allVideos[currentVideoSection];
+  const newIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
+  const video = videos[newIndex];
+  openVideoModal(video.id, currentVideoSection, newIndex);
+}
+
+function nextVideo() {
+  if (!currentVideoSection || !window.allVideos[currentVideoSection].length) return;
+  const videos = window.allVideos[currentVideoSection];
+  const newIndex = (currentVideoIndex + 1) % videos.length;
+  const video = videos[newIndex];
+  openVideoModal(video.id, currentVideoSection, newIndex);
+}
+
+function closeVideoModal() {
+  const modal = document.getElementById('videoModal');
+  const iframe = document.getElementById('videoFrame');
+  
+  iframe.src = '';
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+  
+  // 배경음악 재개
+  if (videoWasPlaying && audio) {
+    audio.play().catch(() => {});
+    videoWasPlaying = false;
+  }
+}
+
+// 모달 클릭 시 닫기 (배경 클릭)
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('videoModal');
+  if (e.target === modal) {
+    closeVideoModal();
+  }
+});
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeVideoModal();
+  }
 });
 </script>
-<div style="position:fixed;bottom:20px;right:20px;z-index:200;background:rgba(255,255,255,0.95);padding:15px 20px;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:flex;align-items:center;gap:12px;">
-  <audio id="bgMusic" loop>
-    <source src="music/background.mp3" type="audio/mpeg">
-  </audio>
-  <button id="musicToggle" onclick="toggleMusic()" style="background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:0;">🔇</button>
-  <span style="font-size:0.75rem;color:var(--sub);letter-spacing:0.05em;">BGM</span>
-</div>
 </body>
 </html>

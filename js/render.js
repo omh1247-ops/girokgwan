@@ -46,33 +46,40 @@ async function renderVideoCards() {
     const res = await fetch('data/videos.json');
     const videos = await res.json();
 
+    // 전역 변수에 비디오 데이터 저장
+    if (window.allVideos) {
+      window.allVideos.commercial = videos.commercial || [];
+      window.allVideos.music = videos.music || [];
+      window.allVideos.sketch = videos.sketch || [];
+    }
+
     // Commercial
     const cmGrid = document.querySelector('#acc-cm .video-grid');
     if (cmGrid) {
-      cmGrid.innerHTML = videos.commercial.map(v =>
-        `<a href="https://youtu.be/${v.id}" target="_blank" class="video-card">
+      cmGrid.innerHTML = videos.commercial.map((v, i) =>
+        `<div class="video-card" onclick="openVideoModal('${v.id}', 'commercial', ${i})">
           <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/${v.id}/hqdefault.jpg"
                alt="${v.title}" onerror="this.onerror=null;this.style.display='none'">
           <div class="video-overlay">
             <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
             <div class="video-label">${v.title}</div>
           </div>
-        </a>`
+        </div>`
       ).join('');
     }
 
     // Music Video
     const mvGrid = document.querySelector('#acc-mv .video-grid');
     if (mvGrid) {
-      mvGrid.innerHTML = videos.music.map(v =>
-        `<a href="https://youtu.be/${v.id}" target="_blank" class="video-card">
+      mvGrid.innerHTML = videos.music.map((v, i) =>
+        `<div class="video-card" onclick="openVideoModal('${v.id}', 'music', ${i})">
           <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/${v.id}/hqdefault.jpg"
                alt="${v.title}" onerror="this.onerror=null;this.style.display='none'">
           <div class="video-overlay">
             <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
             <div class="video-label">${v.title}</div>
           </div>
-        </a>`
+        </div>`
       ).join('');
     }
 
@@ -80,15 +87,14 @@ async function renderVideoCards() {
     const skGrid = document.querySelector('#acc-sk .video-grid');
     if (skGrid) {
       skGrid.innerHTML = videos.sketch.map((v, i) => {
-        const href = v.url || `https://youtu.be/${v.id}`;
-        const src = v.id ? `https://img.youtube.com/vi/${v.id}/hqdefault.jpg` : 'https://img.youtube.com/vi/wB4jX87odgw/hqdefault.jpg';
-        return `<a href="${href}" target="_blank" class="video-card" style="width:calc(33.333% - 0.8rem);">
-          <img loading="lazy" decoding="async" src="${src}" alt="${v.title}" onerror="this.onerror=null;this.style.display='none'">
+        const videoId = v.id || 'wB4jX87odgw';
+        return `<div class="video-card" onclick="openVideoModal('${videoId}', 'sketch', ${i})" style="width:calc(33.333% - 0.8rem);">
+          <img loading="lazy" decoding="async" src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${v.title}" onerror="this.onerror=null;this.style.display='none'">
           <div class="video-overlay">
             <div class="play-ring"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
             <div class="video-label">${v.title}</div>
           </div>
-        </a>`;
+        </div>`;
       }).join('');
     }
   } catch (e) {
