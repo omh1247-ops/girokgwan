@@ -73,10 +73,13 @@
 .player-btn svg{width:18px;height:18px;display:block}
 .player-btn:focus-visible{outline:2px solid rgba(0,0,0,0.2);outline-offset:2px}
 .player-info-box{width:145px;overflow:hidden;display:flex;align-items:center;position:relative}
-.player-info{font-size:0.8rem;color:var(--sub);white-space:nowrap;animation:marquee 20s linear infinite;display:inline-block}
-.player-info.marquee-reset{animation:none}
-@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-100%);}}
-.player-info.paused{animation-play-state:paused}
+.player-info{font-size:0.8rem;color:var(--sub);white-space:nowrap;overflow:hidden}
+.player-info-track{display:inline-flex;align-items:center;animation:marquee 20s linear infinite;will-change:transform}
+.player-info-track.marquee-reset{animation:none}
+.player-info.paused .player-info-track,
+.player-info-track.paused{animation-play-state:paused}
+.marquee-text{display:inline-block;flex-shrink:0;margin-right:2rem}
+@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 @media (max-width:900px){
   .player-info-box{display:none}
   .player-btn svg{width:16px;height:16px}
@@ -163,7 +166,12 @@
     </button>
   </div>
   <div class="player-info-box">
-    <div class="player-info" id="playerInfo">Talkie Walkie - afternoon</div>
+    <div class="player-info" id="playerInfo">
+      <div class="player-info-track" id="playerInfoTrack">
+        <span class="marquee-text"></span>
+        <span class="marquee-text"></span>
+      </div>
+    </div>
   </div>
  </div>
  <ul class="nav-links" id="navLinks">
@@ -1597,7 +1605,7 @@ const audio = document.getElementById('bgMusic');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const playBtn = document.getElementById('playPauseBtn');
-const infoEl = document.getElementById('playerInfo');
+const infoTrackEl = document.getElementById('playerInfoTrack');
 
 const tabId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 let bgmChannel = null;
@@ -1628,12 +1636,25 @@ function loadTrack(index, autoplay = false) {
 }
 
 function updateInfo() {
-  if (!infoEl) return;
+  if (!infoTrackEl) return;
   const newText = `${tracks[currentTrack].artist} - ${tracks[currentTrack].title}`;
-  infoEl.textContent = newText;
+  const spans = infoTrackEl.querySelectorAll('.marquee-text');
+  if (spans.length === 2) {
+    spans[0].textContent = newText;
+    spans[1].textContent = newText;
+  } else {
+    infoTrackEl.innerHTML = '';
+    for (let i = 0; i < 2; i += 1) {
+      const span = document.createElement('span');
+      span.className = 'marquee-text';
+      span.textContent = newText;
+      infoTrackEl.appendChild(span);
+    }
+  }
+
   // Restart marquee animation when track changes
-  infoEl.classList.add('marquee-reset');
-  setTimeout(() => infoEl.classList.remove('marquee-reset'), 10);
+  infoTrackEl.classList.add('marquee-reset');
+  setTimeout(() => infoTrackEl.classList.remove('marquee-reset'), 10);
 }
 
 function setPlayIcon(isPlaying) {
@@ -1643,11 +1664,11 @@ function setPlayIcon(isPlaying) {
     : '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7L8 5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   playBtn.title = isPlaying ? 'Pause' : 'Play';
   playBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
-  if (infoEl) {
+  if (infoTrackEl) {
     if (isPlaying) {
-      infoEl.classList.remove('paused');
+      infoTrackEl.classList.remove('paused');
     } else {
-      infoEl.classList.add('paused');
+      infoTrackEl.classList.add('paused');
     }
   }
 }
@@ -1693,8 +1714,8 @@ audio.addEventListener('ended', () => nextTrack());
 loadTrack(0, false);
 audio.currentTime = 0;
 audio.volume = 0.3;
-if (infoEl) {
-  infoEl.classList.add('paused');
+if (infoTrackEl) {
+  infoTrackEl.classList.add('paused');
 }
 
 let hasStartedPlaying = false;
