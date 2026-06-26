@@ -32,8 +32,43 @@
 .schedule-contact-btn:hover{background:transparent;color:var(--text)}
 </style>
 <style>
-.services-vat-notice{font-size:.85rem;font-weight:700;color:var(--text);margin:0 0 .5rem 0;padding:0;text-align:left}
-.services-vat-notice .vat-en{font-size:.65rem;font-weight:400;color:var(--sub);letter-spacing:.03em;margin-left:.3rem}
+.services-vat-notice,
+.services-card-notice{
+  font-family:inherit;
+  font-size:.85rem;
+  color:var(--text);
+  margin:0;
+  padding:0;
+  text-align:left;
+  line-height:1.4;
+}
+.services-vat-notice{
+  font-weight:700;
+}
+.services-vat-notice .vat-en{
+  font-size:.65rem;
+  font-weight:400;
+  color:var(--sub);
+  letter-spacing:.03em;
+  margin-left:.3rem;
+}
+.services-card-notice{
+  font-weight:400;
+  margin-top:.4rem;
+}
+.services-grid{
+  margin-top:1rem;
+  gap:1rem;
+}
+.service-card{
+  padding:2.5rem 1.8rem;
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  transition:background .3s;
+}
+.service-card:last-child{
+  border-right:none;
+}
 </style>
 <style>
 .services-note{font-size:.78rem;color:var(--sub);text-align:left;line-height:1.7;margin-top:1rem}
@@ -243,6 +278,7 @@
  </div>
  </div>
 <p class="services-vat-notice fade-in">모든 서비스 가격은 부가세 10% 포함 가격입니다 <span class="vat-en">( All prices include 10% VAT )</span></p>
+<p class="services-card-notice fade-in">*카드 사용가능</p>
  <div class="services-grid fade-in" id="servicesGrid"></div>
 
  <div class="services-common fade-in">
@@ -778,9 +814,9 @@ behavior: 'smooth'
 
  // 서비스 카드 데이터
  const services = [
-{num:'01',name:'인물 · 포트레이트',items:['기본 2시간 — 220,000원','보정 2컷 제공']},
-{num:'02',name:'룩북 · 패션',items:['기본 3시간 — 330,000원','하프 6시간 — 550,000원','풀 8시간 — 770,000원']},
-{num:'03',name:'제품 촬영',items:['기본 3시간 — 330,000원','하프 6시간 — 550,000원','풀 8시간 — 770,000원']},
+{num:'01',name:'인물 · 포트레이트',items:['기본 3시간 — 330,000원','보정 4컷 제공']},
+{num:'02',name:'룩북 · 패션',items:['하프 6시간 — 550,000원','풀 8시간 — 770,000원']},
+{num:'03',name:'제품 촬영',items:['하프 6시간 — 550,000원','풀 8시간 — 770,000원']},
  {num:'04',name:'영상 제작',items:['브랜드 필름, 뮤직비디오,','리캡 등 문의 부탁드립니다.']}
  ];
 
