@@ -1875,15 +1875,14 @@ document.addEventListener('click', function(e) {
       });
 
       // Firebase에도 저장 (Realtime Database)
-      try {
-        rdb.ref('analytics/photo_clicks').push({
-          photo: fileName,
-          timestamp: Date.now()
-        });
+      rdb.ref('analytics/photo_clicks').push({
+        photo: fileName,
+        timestamp: Date.now()
+      }).then(() => {
         console.log('✅ 사진 클릭 저장됨:', fileName);
-      } catch (err) {
+      }).catch(err => {
         console.warn('Firebase Realtime DB 저장 실패:', err);
-      }
+      });
     }
   }
 });
