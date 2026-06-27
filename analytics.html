@@ -49,7 +49,8 @@
     </table>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -60,6 +61,8 @@
       messagingSenderId: "1048676891088",
       appId: "1:1048676891088:web:f1e32c5dd0054fb0e40e4a"
     };
+    const firebaseApp = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
