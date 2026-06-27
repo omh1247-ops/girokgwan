@@ -385,6 +385,14 @@
       return d.toISOString().slice(0,10); // YYYY-MM-DD
     }
 
+    function getWeekOfMonthLabel(weekStartDate) {
+      const year = weekStartDate.getFullYear();
+      const month = weekStartDate.getMonth() + 1;
+      const dayOfMonth = weekStartDate.getDate();
+      const weekNum = Math.ceil(dayOfMonth / 7);
+      return `${year}년 ${month}월 ${weekNum}주차`;
+    }
+
     function renderCombined() {
       // 안전장치
       if (!clicksLoaded || !durationsLoaded) return;
@@ -448,11 +456,11 @@
         });
       }
 
-      // 주간 통계 (최근 6주: 이번주 포함)
-      renderWeeklyTables(clicks, 6);
+      // 주간 통계 (이번 주 + 지난 주 1위 기록)
+      renderWeeklyTables(clicks);
     }
 
-    function renderWeeklyTables(clicksObj, weeksBack) {
+    function renderWeeklyTables(clicksObj) {
       // clicksObj: raw clicks entries
       const entries = Object.values(clicksObj || {});
       const weeks = {}; // weekKey -> { photo -> count }
@@ -469,15 +477,26 @@
         if (url) weeks[wk][p].photoUrl = url;
       });
 
-      // determine recent weeks: get sorted week keys and pick last 'weeksBack'
-      const weekKeys = Object.keys(weeks).sort();
-      // also ensure current week exists
-      const nowWeek = weekStartMonday(Date.now());
-      if (!weekKeys.includes(nowWeek)) weekKeys.push(nowWeek);
-      const sortedKeys = Array.from(new Set(weekKeys)).sort();
-      const recentKeys = sortedKeys.slice(-weeksBack);
+      const currentWeekKey = weekStartMonday(Date.now());
+      const currentWeekDate = new Date(currentWeekKey + 'T00:00:00');
+      const currentWeekItems = [];
+      const pastWeekKeys = [];
 
-      // render week container
+      Object.keys(weeks).forEach(weekKey => {
+        if (weekKey === currentWeekKey) return;
+        if (weekKey < currentWeekKey) pastWeekKeys.push(weekKey);
+      });
+
+      if (weeks[currentWeekKey]) {
+        Object.entries(weeks[currentWeekKey]).forEach(([photo, info]) => {
+          currentWeekItems.push({ photo, count: info.count, photoUrl: info.photoUrl || null });
+        });
+      }
+      currentWeekItems.sort((a,b) => b.count - a.count);
+
+      // sort past weeks newest first
+      pastWeekKeys.sort((a,b) => b.localeCompare(a));
+
       let weeklyContainer = document.getElementById('weeklyContainer');
       if (!weeklyContainer) {
         weeklyContainer = document.createElement('div');
@@ -485,32 +504,62 @@
         const container = document.querySelector('.container');
         container.parentNode.insertBefore(weeklyContainer, container.nextSibling);
       }
-      weeklyContainer.innerHTML = '<h2 style="margin:20px 0 10px">주간 통계 (월요일 시작)</h2>';
 
-      recentKeys.forEach(weekKey => {
-        const weekData = weeks[weekKey] || {};
-        const items = Object.entries(weekData).map(([photo, info]) => ({ photo, count: info.count, photoUrl: info.photoUrl || null }));
-        items.sort((a,b) => b.count - a.count);
+      const weekLabel = getWeekOfMonthLabel(currentWeekDate);
+      weeklyContainer.innerHTML = `<h2 style="margin:20px 0 10px">${weekLabel}</h2>`;
 
-        const table = document.createElement('table');
-        table.style.marginBottom = '18px';
-        table.innerHTML = `<caption style="text-align:left;font-weight:700;margin:8px 0">${weekKey} (Mon-Sun)</caption>`;
-        const thead = document.createElement('thead');
-        thead.innerHTML = '<tr><th>사진</th><th>클릭 수</th></tr>';
-        table.appendChild(thead);
-        const tb = document.createElement('tbody');
-        if (!items.length) {
-          tb.innerHTML = '<tr><td colspan="2" class="no-data">해당 주 데이터가 없습니다.</td></tr>';
-        } else {
-          items.forEach(it => {
-            const r = tb.insertRow();
-            const thumb = it.photoUrl ? `<img src="${it.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
-            r.innerHTML = `<td><div style="display:flex;align-items:center">${thumb}${it.photo}</div></td><td>${it.count}회</td>`;
-          });
-        }
-        table.appendChild(tb);
-        weeklyContainer.appendChild(table);
-      });
+      const currentTable = document.createElement('table');
+      currentTable.style.marginBottom = '18px';
+      const currentThead = document.createElement('thead');
+      currentThead.innerHTML = '<tr><th>사진</th><th>클릭 수</th></tr>';
+      currentTable.appendChild(currentThead);
+      const currentTbody = document.createElement('tbody');
+
+      if (!currentWeekItems.length) {
+        currentTbody.innerHTML = '<tr><td colspan="2" class="no-data">아직 데이터가 없습니다.</td></tr>';
+      } else {
+        currentWeekItems.slice(0, 10).forEach(it => {
+          const r = currentTbody.insertRow();
+          const thumb = it.photoUrl ? `<img src="${it.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
+          r.innerHTML = `<td><div style="display:flex;align-items:center">${thumb}${it.photo}</div></td><td>${it.count}회</td>`;
+        });
+      }
+      currentTable.appendChild(currentTbody);
+      weeklyContainer.appendChild(currentTable);
+
+      const pastTitle = document.createElement('h2');
+      pastTitle.style.margin = '20px 0 10px';
+      pastTitle.textContent = '주간 1위 기록';
+      weeklyContainer.appendChild(pastTitle);
+
+      const pastTable = document.createElement('table');
+      pastTable.style.marginBottom = '18px';
+      const pastThead = document.createElement('thead');
+      pastThead.innerHTML = '<tr><th>주차</th><th>1위 사진</th><th>클릭 수</th></tr>';
+      pastTable.appendChild(pastThead);
+      const pastTbody = document.createElement('tbody');
+
+      if (!pastWeekKeys.length) {
+        pastTbody.innerHTML = '<tr><td colspan="3" class="no-data">아직 기록이 없습니다.</td></tr>';
+      } else {
+        pastWeekKeys.forEach(weekKey => {
+          const items = Object.entries(weeks[weekKey] || {}).map(([photo, info]) => ({ photo, count: info.count, photoUrl: info.photoUrl || null }));
+          if (!items.length) return;
+          items.sort((a,b) => b.count - a.count);
+          const top = items[0];
+          const r = pastTbody.insertRow();
+          const thumb = top.photoUrl ? `<img src="${top.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
+          const weekDate = new Date(weekKey + 'T00:00:00');
+          const label = getWeekOfMonthLabel(weekDate);
+          r.innerHTML = `
+            <td>${label}</td>
+            <td><div style="display:flex;align-items:center">${thumb}${top.photo}</div></td>
+            <td>${top.count}회</td>
+          `;
+        });
+      }
+      pastTable.appendChild(pastTbody);
+      weeklyContainer.appendChild(pastTable);
     }
 
     function tryRender() {
