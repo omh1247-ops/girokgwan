@@ -1878,7 +1878,7 @@ document.addEventListener('click', function(e) {
       try {
         firebase.database().ref('analytics/photo_clicks').push({
           photo: fileName,
-          timestamp: clickTime
+          timestamp: Date.now()
         });
       } catch (err) {
         console.warn('Firebase Realtime DB 저장 실패:', err);
