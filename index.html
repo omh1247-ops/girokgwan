@@ -1868,9 +1868,10 @@ document.addEventListener('click', function(e) {
       gtag('event', 'photo_click', {
         'event_category': 'engagement',
         'event_label': sectionName,
-        'photo_file': fileName
+        'photo_file': fileName,
+        'engagement_time_sec': Math.round(Date.now() / 1000)
       });
-      console.log('📸 사진 클릭:', sectionName, fileName);
+      console.log('📸 사진 클릭:', sectionName, fileName, Math.round(Date.now() / 1000));
     }
   }
 });
