@@ -536,6 +536,20 @@
       durationsError = err || { message: err.message };
       showErrorMessage('관람시간 데이터 읽기 실패');
     });
+
+    database.ref('analytics/first_clicks').on('value', snap => {
+      updateFirstClickData(snap);
+    }, err => {
+      console.warn('Firebase Realtime DB 첫 클릭 사진 순위 읽기 실패:', err);
+    });
+
+    database.ref('analytics/daily_visits').on('value', snap => {
+      updateDailyVisitCounts(snap);
+    }, err => {
+      console.warn('Firebase Realtime DB 일일 방문자수 업데이트 실패:', err);
+    });
+
+    initDailyVisitCalendar();
   </script>
 </body>
 </html>
