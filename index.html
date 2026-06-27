@@ -2029,8 +2029,8 @@ document.addEventListener('click', function(e) {
         console.warn('Firebase Realtime DB 저장 실패:', err);
       });
 
-      // 세션 단위 첫 클릭 사진 기록
-      const firstClickDone = sessionStorage.getItem('girokgwan_first_click_done');
+      // 브라우저 단위 첫 클릭 사진 기록
+      const firstClickDone = localStorage.getItem('girokgwan_first_click_done');
       if (!firstClickDone) {
         rdb.ref('analytics/first_clicks').push({
           photo: fileName,
@@ -2038,7 +2038,7 @@ document.addEventListener('click', function(e) {
           timestamp: Date.now()
         }).then(() => {
           console.log('✅ 첫 클릭 사진 기록됨: ' + fileName);
-          sessionStorage.setItem('girokgwan_first_click_done', 'true');
+          localStorage.setItem('girokgwan_first_click_done', 'true');
         }).catch(err => {
           console.warn('Firebase Realtime DB 첫 클릭 저장 실패:', err);
         });
