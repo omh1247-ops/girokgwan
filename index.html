@@ -620,6 +620,9 @@ behavior: 'smooth'
 
  // Lightbox
  let lbImages = [], lbIndex = 0;
+// 라이트박스 관람 시간 추적용 전역 변수
+let lightboxOpenTime = null;
+let lightboxOpenPhoto = null;
 
  function openLightbox(src) {
  const section = event.currentTarget.closest('.photo-section');
@@ -631,7 +634,30 @@ behavior: 'smooth'
  document.body.style.overflow = 'hidden';
  }
  function showLightboxImg() {
- document.getElementById('lightbox-img').src = lbImages[lbIndex];
+  // 이전에 보고 있던 사진 관람시간 저장
+  try {
+    if (lightboxOpenPhoto && lightboxOpenTime) {
+      const durationSec = (Date.now() - lightboxOpenTime) / 1000;
+      const prevPhoto = lightboxOpenPhoto;
+      rdb.ref('analytics/photo_durations').push({
+        photo: prevPhoto,
+        duration: durationSec,
+        timestamp: Date.now()
+      }).then(() => {
+        console.log('✅ 사진 관람시간 저장:', prevPhoto, durationSec);
+      }).catch(err => {
+        console.warn('Firebase Realtime DB(관람시간) 저장 실패:', err);
+      });
+    }
+  } catch (e) {
+    console.warn('라이트박스 관람시간 저장 중 오류:', e);
+  }
+
+  // 현재 이미지로 업데이트 및 관람 시작 시간 초기화
+  const newSrc = lbImages[lbIndex];
+  document.getElementById('lightbox-img').src = newSrc;
+  lightboxOpenPhoto = newSrc.split('/').pop();
+  lightboxOpenTime = Date.now();
  }
  function lbPrev(e) {
  if (e) e.stopPropagation();
@@ -661,6 +687,27 @@ behavior: 'smooth'
    lightbox.classList.remove('active');
    lightbox.style.cursor = 'default';
    document.body.style.overflow = '';
+  // 라이트박스 닫을 때 현재 보고 있던 사진의 관람시간 저장
+  try {
+    if (lightboxOpenPhoto && lightboxOpenTime) {
+      const durationSec = (Date.now() - lightboxOpenTime) / 1000;
+      const photo = lightboxOpenPhoto;
+      rdb.ref('analytics/photo_durations').push({
+        photo: photo,
+        duration: durationSec,
+        timestamp: Date.now()
+      }).then(() => {
+        console.log('✅ 라이트박스 종료 - 사진 관람시간 저장:', photo, durationSec);
+      }).catch(err => {
+        console.warn('Firebase Realtime DB(관람시간) 저장 실패:', err);
+      });
+    }
+  } catch (e) {
+    console.warn('라이트박스 관람시간 저장 중 오류:', e);
+  }
+  // 초기화
+  lightboxOpenPhoto = null;
+  lightboxOpenTime = null;
  }
  function updateLightboxCursor(e) {
    const lightbox = document.getElementById('lightbox');
