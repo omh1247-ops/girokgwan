@@ -1876,10 +1876,11 @@ document.addEventListener('click', function(e) {
 
       // Firebase에도 저장 (Realtime Database)
       try {
-        firebase.database().ref('analytics/photo_clicks').push({
+        rdb.ref('analytics/photo_clicks').push({
           photo: fileName,
           timestamp: Date.now()
         });
+        console.log('✅ 사진 클릭 저장됨:', fileName);
       } catch (err) {
         console.warn('Firebase Realtime DB 저장 실패:', err);
       }
