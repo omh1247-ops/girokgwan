@@ -1867,11 +1867,10 @@ document.addEventListener('click', function(e) {
       const fileName = img.src.split('/').pop(); // 파일명만 추출
       gtag('event', 'photo_click', {
         'event_category': 'engagement',
-        'event_label': sectionName,
-        'photo_file': fileName,
-        'engagement_time_sec': Math.round(Date.now() / 1000)
+        'event_label': fileName,
+        'engagement_time_msec': Date.now()
       });
-      console.log('📸 사진 클릭:', sectionName, fileName, Math.round(Date.now() / 1000));
+      console.log('📸 사진 클릭:', fileName, Date.now());
     }
   }
 });
