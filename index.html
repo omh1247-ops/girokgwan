@@ -778,6 +778,7 @@ behavior: 'smooth'
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
  // ─── Firebase 초기화 ───
@@ -790,7 +791,8 @@ behavior: 'smooth'
  appId: "1:101459034031:web:839af145f8380711ec795a"
  };
  firebase.initializeApp(firebaseConfig);
- const db = firebase.firestore();
+const db = firebase.firestore();
+const rdb = firebase.database();
 
  // Firestore 영속성 활성화 (오프라인 지원)
  db.enablePersistence().catch((err) => {
@@ -1857,20 +1859,30 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 <script>
-// 사진 클릭 추적 (파일명 포함)
+// 사진 클릭 추적: GA 전송 + Firebase Realtime DB 저장
 document.addEventListener('click', function(e) {
   const photoItem = e.target.closest('.photo-item');
   if (photoItem) {
     const img = photoItem.querySelector('img');
     if (img && img.src) {
-      const sectionName = photoItem.closest('.photo-section')?.id || '알수없음';
-      const fileName = img.src.split('/').pop(); // 파일명만 추출
+      const fileName = img.src.split('/').pop();
+      const clickTime = Date.now();
+
+      // GA에 보내기
       gtag('event', 'photo_click', {
         'event_category': 'engagement',
-        'event_label': fileName,
-        'engagement_time_msec': Date.now()
+        'event_label': fileName
       });
-      console.log('📸 사진 클릭:', fileName, Date.now());
+
+      // Firebase에도 저장 (Realtime Database)
+      try {
+        firebase.database().ref('analytics/photo_clicks').push({
+          photo: fileName,
+          timestamp: clickTime
+        });
+      } catch (err) {
+        console.warn('Firebase Realtime DB 저장 실패:', err);
+      }
     }
   }
 });
