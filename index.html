@@ -620,9 +620,80 @@ behavior: 'smooth'
 
  // Lightbox
  let lbImages = [], lbIndex = 0;
-// 라이트박스 관람 시간 추적용 전역 변수
-let lightboxOpenTime = null;
-let lightboxOpenPhoto = null;
+// 라이트박스 관람 시간 추적용 전역 변수 (새 구조)
+let lightboxOpenPhoto = null; // 현재 보고 있는 사진 파일명
+let lightboxOpenPhotoUrl = null; // 현재 보고 있는 사진 전체 URL
+let lightboxAccumulatedMs = 0; // 누적된 실제 관람시간 (ms)
+let lightboxSegmentStart = null; // 현재 측정 중인 구간 시작 시각 (ms) 또는 null
+let lightboxPauseReasons = new Set(); // 예: 'visibility', 'idle'
+let lightboxIdleTimer = null; // setTimeout 핸들
+const LIGHTBOX_IDLE_TIMEOUT_MS = 20000; // 20초
+
+// pause/resume 헬퍼
+function pauseLightboxSegment(reason) {
+  if (!lightboxOpenPhoto) return; // 라이트박스가 열려있지 않음
+  const wasEmpty = lightboxPauseReasons.size === 0;
+  lightboxPauseReasons.add(reason);
+  if (wasEmpty && lightboxSegmentStart !== null) {
+    // 측정 중이었으면 지금까지 구간을 누적
+    lightboxAccumulatedMs += (Date.now() - lightboxSegmentStart);
+    lightboxSegmentStart = null;
+  }
+}
+
+function resumeLightboxSegment(reason) {
+  if (!lightboxOpenPhoto) return;
+  lightboxPauseReasons.delete(reason);
+  if (lightboxPauseReasons.size === 0 && lightboxOpenPhoto) {
+    // 더 이상 멈출 이유가 없으면 새로운 구간 시작
+    lightboxSegmentStart = Date.now();
+  }
+}
+
+function resetLightboxIdleTimer() {
+  if (!lightboxOpenPhoto) return; // 라이트박스가 닫혀있으면 타이머 동작 금지
+  if (lightboxIdleTimer) {
+    clearTimeout(lightboxIdleTimer);
+    lightboxIdleTimer = null;
+  }
+  // 만약 'idle'로 멈춰있었다면 사용자 활동이 있으므로 다시 시작
+  if (lightboxPauseReasons.has('idle')) {
+    resumeLightboxSegment('idle');
+  }
+  // 새 타이머 설정: 지정 시간 동안 활동이 없으면 일시정지
+  lightboxIdleTimer = setTimeout(() => {
+    pauseLightboxSegment('idle');
+  }, LIGHTBOX_IDLE_TIMEOUT_MS);
+}
+
+function finalizeLightboxDuration() {
+  try {
+    if (!lightboxOpenPhoto) return; // 기록할 것이 없음
+    // 현재 구간이 있으면 누적
+    if (lightboxSegmentStart !== null) {
+      lightboxAccumulatedMs += (Date.now() - lightboxSegmentStart);
+      lightboxSegmentStart = null;
+    }
+    const durationSec = Math.round((lightboxAccumulatedMs / 100)) / 10; // 소수점1자리 (예: 1.2)
+    // durationSec이 0보다 클 때만 저장
+    if (lightboxOpenPhoto && durationSec > 0) {
+      rdb.ref('analytics/photo_durations').push({
+        photo: lightboxOpenPhoto,
+        photoUrl: lightboxOpenPhotoUrl,
+        duration: durationSec,
+        timestamp: Date.now()
+      }).then(() => {
+        console.log('✅ 사진 관람시간 저장:', lightboxOpenPhoto, durationSec);
+      }).catch(err => {
+        console.warn('Firebase Realtime DB(관람시간) 저장 실패:', err);
+      });
+    }
+  } catch (e) {
+    console.warn('라이트박스 관람시간 저장 중 오류:', e);
+  } finally {
+    lightboxAccumulatedMs = 0;
+  }
+}
 
  function openLightbox(src) {
  const section = event.currentTarget.closest('.photo-section');
@@ -633,32 +704,31 @@ let lightboxOpenPhoto = null;
  lightbox.classList.add('active');
  document.body.style.overflow = 'hidden';
  }
- function showLightboxImg() {
-  // 이전에 보고 있던 사진 관람시간 저장
-  try {
-    if (lightboxOpenPhoto && lightboxOpenTime) {
-      const durationSec = (Date.now() - lightboxOpenTime) / 1000;
-      const prevPhoto = lightboxOpenPhoto;
-      rdb.ref('analytics/photo_durations').push({
-        photo: prevPhoto,
-        duration: durationSec,
-        timestamp: Date.now()
-      }).then(() => {
-        console.log('✅ 사진 관람시간 저장:', prevPhoto, durationSec);
-      }).catch(err => {
-        console.warn('Firebase Realtime DB(관람시간) 저장 실패:', err);
-      });
-    }
-  } catch (e) {
-    console.warn('라이트박스 관람시간 저장 중 오류:', e);
-  }
+function showLightboxImg() {
+  // 이전 사진 세션 마감 및 저장
+  finalizeLightboxDuration();
 
-  // 현재 이미지로 업데이트 및 관람 시작 시간 초기화
+  // 현재 이미지로 업데이트
   const newSrc = lbImages[lbIndex];
   document.getElementById('lightbox-img').src = newSrc;
   lightboxOpenPhoto = newSrc.split('/').pop();
-  lightboxOpenTime = Date.now();
- }
+  lightboxOpenPhotoUrl = newSrc;
+
+  // 초기화
+  lightboxAccumulatedMs = 0;
+  lightboxPauseReasons.clear();
+
+  // visibility 상태에 따라 즉시 측정 시작 또는 일시정지
+  if (document.hidden) {
+    lightboxSegmentStart = null;
+    lightboxPauseReasons.add('visibility');
+  } else {
+    lightboxSegmentStart = Date.now();
+  }
+
+  // idle 타이머 재시작
+  resetLightboxIdleTimer();
+}
  function lbPrev(e) {
  if (e) e.stopPropagation();
  lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length;
@@ -687,27 +757,16 @@ let lightboxOpenPhoto = null;
    lightbox.classList.remove('active');
    lightbox.style.cursor = 'default';
    document.body.style.overflow = '';
-  // 라이트박스 닫을 때 현재 보고 있던 사진의 관람시간 저장
-  try {
-    if (lightboxOpenPhoto && lightboxOpenTime) {
-      const durationSec = (Date.now() - lightboxOpenTime) / 1000;
-      const photo = lightboxOpenPhoto;
-      rdb.ref('analytics/photo_durations').push({
-        photo: photo,
-        duration: durationSec,
-        timestamp: Date.now()
-      }).then(() => {
-        console.log('✅ 라이트박스 종료 - 사진 관람시간 저장:', photo, durationSec);
-      }).catch(err => {
-        console.warn('Firebase Realtime DB(관람시간) 저장 실패:', err);
-      });
-    }
-  } catch (e) {
-    console.warn('라이트박스 관람시간 저장 중 오류:', e);
-  }
-  // 초기화
+  // 라이트박스 닫을 때 현재 보고 있던 사진의 관람시간 마감 및 저장
+  finalizeLightboxDuration();
   lightboxOpenPhoto = null;
-  lightboxOpenTime = null;
+  lightboxOpenPhotoUrl = null;
+  lightboxSegmentStart = null;
+  lightboxPauseReasons.clear();
+  if (lightboxIdleTimer) {
+    clearTimeout(lightboxIdleTimer);
+    lightboxIdleTimer = null;
+  }
  }
  function updateLightboxCursor(e) {
    const lightbox = document.getElementById('lightbox');
@@ -730,6 +789,7 @@ let lightboxOpenPhoto = null;
    if (e.key === 'ArrowRight') lbNext();
  });
  document.addEventListener('DOMContentLoaded', () => {
+   trackDailyVisit();
    const lb = document.getElementById('lightbox');
    const lbImg = document.getElementById('lightbox-img');
    if (lb) {
@@ -738,6 +798,17 @@ let lightboxOpenPhoto = null;
    }
    if (lbImg) {
      lbImg.addEventListener('mousemove', updateLightboxCursor);
+    // 사용자 입력(마우스/키/터치/스크롤)으로 idle 타이머를 리셋
+    ['mousemove','mousedown','keydown','touchstart','scroll'].forEach(evt => {
+      document.addEventListener(evt, () => {
+        resetLightboxIdleTimer();
+      }, { passive: true });
+    });
+    // visibilitychange 감지
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) pauseLightboxSegment('visibility');
+      else resumeLightboxSegment('visibility');
+    });
    }
  });
 </script>
@@ -841,6 +912,31 @@ let lightboxOpenPhoto = null;
  firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const rdb = firebase.database();
+
+function getKSTDateString(timestampMs) {
+  const kstMs = timestampMs + 9 * 60 * 60 * 1000;
+  const d = new Date(kstMs);
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function trackDailyVisit() {
+  const today = getKSTDateString(Date.now());
+  const lastVisit = localStorage.getItem('girokgwan_last_visit_date');
+  if (lastVisit === today) return;
+
+  rdb.ref('analytics/daily_visits').push({
+    date: today,
+    timestamp: Date.now()
+  }).then(() => {
+    console.log('✅ 오늘 방문 기록됨: ' + today);
+    localStorage.setItem('girokgwan_last_visit_date', today);
+  }).catch((err) => {
+    console.warn('오늘 방문 기록 저장 실패:', err);
+  });
+}
 
  // Firestore 영속성 활성화 (오프라인 지원)
  db.enablePersistence().catch((err) => {
@@ -1925,12 +2021,28 @@ document.addEventListener('click', function(e) {
       // Firebase에도 저장 (Realtime Database)
       rdb.ref('analytics/photo_clicks').push({
         photo: fileName,
+        photoUrl: img.src,
         timestamp: Date.now()
       }).then(() => {
         console.log('✅ 사진 클릭 저장됨:', fileName);
       }).catch(err => {
         console.warn('Firebase Realtime DB 저장 실패:', err);
       });
+
+      // 세션 단위 첫 클릭 사진 기록
+      const firstClickDone = sessionStorage.getItem('girokgwan_first_click_done');
+      if (!firstClickDone) {
+        rdb.ref('analytics/first_clicks').push({
+          photo: fileName,
+          photoUrl: img.src,
+          timestamp: Date.now()
+        }).then(() => {
+          console.log('✅ 첫 클릭 사진 기록됨: ' + fileName);
+          sessionStorage.setItem('girokgwan_first_click_done', 'true');
+        }).catch(err => {
+          console.warn('Firebase Realtime DB 첫 클릭 저장 실패:', err);
+        });
+      }
     }
   }
 });

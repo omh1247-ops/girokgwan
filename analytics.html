@@ -30,6 +30,95 @@
     }
     tr:hover { background: #f5f5f5; }
     .no-data { text-align: center; padding: 20px; color: #999; }
+    .daily-calendar {
+      margin: 40px 0 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .daily-calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 10px;
+      border-bottom: 1px solid #eee;
+      gap: 16px;
+    }
+    .daily-calendar-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #333;
+    }
+    .daily-calendar-header .calendar-title-meta {
+      color: #666;
+      margin-top: 4px;
+      font-size: 0.95rem;
+    }
+    .daily-calendar-header button {
+      width: 38px;
+      height: 38px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    .daily-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      padding: 16px;
+    }
+    .daily-calendar-day-name,
+    .daily-calendar-cell {
+      border: 1px solid #e6e6e6;
+      border-radius: 10px;
+      min-height: 96px;
+      padding: 10px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .daily-calendar-day-name {
+      background: #f7f8fa;
+      color: #666;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .daily-calendar-cell.inactive {
+      background: #f9f9f9;
+      color: #bbb;
+    }
+    .daily-calendar-cell.today {
+      border-color: #2d6cdf;
+      box-shadow: inset 0 0 0 1px rgba(45,108,223,0.2);
+    }
+    .daily-calendar-cell .date-number {
+      font-weight: 700;
+      color: #333;
+    }
+    .daily-calendar-cell .visit-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      min-width: 48px;
+    }
+    .daily-calendar-cell.zero .visit-count {
+      background: transparent;
+      color: #999;
+      border: 1px dashed #ddd;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -47,6 +136,37 @@
         <tr><td colspan="3" class="no-data">데이터 로딩 중...</td></tr>
       </tbody>
     </table>
+
+    <div style="margin-top:32px;">
+      <h2 style="margin-bottom:16px;color:#333;">방문 후 첫 클릭 사진 순위</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:64px;">순위</th>
+            <th>사진</th>
+            <th style="width:136px;">첫 클릭 횟수</th>
+            <th style="width:160px;">비율(%)</th>
+          </tr>
+        </thead>
+        <tbody id="firstClickBody">
+          <tr><td colspan="4" class="no-data">데이터 로딩 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="daily-calendar" id="dailyCalendarSection">
+      <div class="daily-calendar-header">
+        <div>
+          <h2>일일 방문자수</h2>
+          <div class="calendar-title-meta" id="calendarMonthLabel">YYYY. MM</div>
+        </div>
+        <div>
+          <button type="button" id="prevMonthBtn">←</button>
+          <button type="button" id="nextMonthBtn">→</button>
+        </div>
+      </div>
+      <div class="daily-calendar-grid" id="dailyCalendarGrid"></div>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -81,6 +201,181 @@
       document.getElementById('tableBody').innerHTML = `<tr><td colspan="3" class="no-data">오류: ${msg}</td></tr>`;
     }
 
+    function getKSTDateString(timestampMs) {
+      const kstMs = timestampMs + 9 * 60 * 60 * 1000;
+      const d = new Date(kstMs);
+      const year = d.getUTCFullYear();
+      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    let dailyVisitCounts = {};
+    let calendarYear = null;
+    let calendarMonth = null;
+    const kstToday = getKSTDateString(Date.now());
+    let firstClickData = null;
+    let firstClickTotal = 0;
+
+    function buildCalendarControls() {
+      const prev = document.getElementById('prevMonthBtn');
+      const next = document.getElementById('nextMonthBtn');
+      prev.addEventListener('click', () => {
+        if (calendarMonth === 0) {
+          calendarYear -= 1;
+          calendarMonth = 11;
+        } else {
+          calendarMonth -= 1;
+        }
+        renderDailyVisitCalendar();
+      });
+      next.addEventListener('click', () => {
+        if (calendarMonth === 11) {
+          calendarYear += 1;
+          calendarMonth = 0;
+        } else {
+          calendarMonth += 1;
+        }
+        renderDailyVisitCalendar();
+      });
+    }
+
+    function initDailyVisitCalendar() {
+      const today = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      calendarYear = today.getUTCFullYear();
+      calendarMonth = today.getUTCMonth();
+      buildCalendarControls();
+      renderDailyVisitCalendar();
+    }
+
+    function renderDailyVisitCalendar() {
+      const label = document.getElementById('calendarMonthLabel');
+      label.textContent = `${calendarYear}. ${String(calendarMonth + 1).padStart(2, '0')}`;
+      const grid = document.getElementById('dailyCalendarGrid');
+      grid.innerHTML = '';
+
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      dayNames.forEach(name => {
+        const cell = document.createElement('div');
+        cell.className = 'daily-calendar-day-name';
+        cell.textContent = name;
+        grid.appendChild(cell);
+      });
+
+      const firstOfMonth = new Date(Date.UTC(calendarYear, calendarMonth, 1));
+      const startDay = firstOfMonth.getUTCDay();
+      const daysInMonth = new Date(Date.UTC(calendarYear, calendarMonth + 1, 0)).getUTCDate();
+      const monthCounts = [];
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        monthCounts.push(dailyVisitCounts[dateStr] || 0);
+      }
+      const maxCount = Math.max(1, ...monthCounts);
+
+      for (let i = 0; i < startDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'daily-calendar-cell inactive';
+        grid.appendChild(emptyCell);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const count = dailyVisitCounts[dateStr] || 0;
+        const isToday = dateStr === kstToday;
+        const ratio = maxCount > 0 ? count / maxCount : 0;
+        const intensity = 0.08 + ratio * 0.45;
+        const bgColor = count > 0 ? `rgba(45, 108, 223, ${intensity})` : '#ffffff';
+        const textColor = count > 0 ? '#fff' : '#999';
+
+        const cell = document.createElement('div');
+        cell.className = 'daily-calendar-cell' + (count === 0 ? ' zero' : '');
+        if (isToday) cell.classList.add('today');
+        cell.style.backgroundColor = bgColor;
+        cell.style.color = count > 0 ? '#fff' : '#999';
+
+        const dateLabel = document.createElement('div');
+        dateLabel.className = 'date-number';
+        dateLabel.textContent = day;
+        cell.appendChild(dateLabel);
+
+        const countLabel = document.createElement('div');
+        countLabel.className = 'visit-count';
+        countLabel.textContent = count > 0 ? `${count}명` : '0';
+        if (count === 0) {
+          countLabel.style.background = 'transparent';
+          countLabel.style.color = '#bbb';
+          countLabel.style.border = '1px dashed #ddd';
+        }
+        cell.appendChild(countLabel);
+
+        grid.appendChild(cell);
+      }
+
+      const totalCells = 7 * Math.ceil((startDay + daysInMonth) / 7);
+      const trailing = totalCells - (startDay + daysInMonth);
+      for (let i = 0; i < trailing; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'daily-calendar-cell inactive';
+        grid.appendChild(emptyCell);
+      }
+    }
+
+    function updateDailyVisitCounts(snapshot) {
+      const data = snapshot.val() || {};
+      dailyVisitCounts = {};
+      Object.values(data).forEach(item => {
+        if (!item || !item.date) return;
+        dailyVisitCounts[item.date] = (dailyVisitCounts[item.date] || 0) + 1;
+      });
+      renderDailyVisitCalendar();
+    }
+
+    function updateFirstClickData(snapshot) {
+      const data = snapshot.val() || {};
+      const counts = {};
+      let total = 0;
+      Object.values(data).forEach(item => {
+        if (!item || !item.photo) return;
+        const photo = item.photo;
+        const url = item.photoUrl || null;
+        if (!counts[photo]) counts[photo] = { count: 0, photoUrl: null };
+        counts[photo].count += 1;
+        if (url) counts[photo].photoUrl = url;
+        total += 1;
+      });
+      firstClickData = counts;
+      firstClickTotal = total;
+      renderFirstClickRanking();
+    }
+
+    function renderFirstClickRanking() {
+      const body = document.getElementById('firstClickBody');
+      body.innerHTML = '';
+      if (!firstClickData || firstClickTotal === 0) {
+        body.innerHTML = '<tr><td colspan="4" class="no-data">아직 데이터가 없습니다.</td></tr>';
+        return;
+      }
+
+      const rows = Object.entries(firstClickData).map(([photo, info]) => ({
+        photo,
+        count: info.count,
+        photoUrl: info.photoUrl
+      }));
+      rows.sort((a,b) => b.count - a.count);
+
+      rows.forEach((item, index) => {
+        const row = body.insertRow();
+        const thumbHtml = item.photoUrl ? `<img src="${item.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
+        const ratio = firstClickTotal > 0 ? ((item.count / firstClickTotal) * 100).toFixed(1) : '0.0';
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td><div style="display:flex;align-items:center">${thumbHtml}${item.photo}</div></td>
+          <td>${item.count}회</td>
+          <td>${ratio}%</td>
+        `;
+      });
+    }
+
     function weekStartSunday(ts) {
       const d = new Date(ts);
       const day = d.getDay(); // 0=Sun
@@ -99,31 +394,37 @@
       const clicks = clicksData || {};
       const durs = durationsData || {};
 
-      // 전체 집계
+      // 전체 집계 (클릭수 + photoUrl 보존)
       const clicksByPhoto = {};
       Object.values(clicks).forEach(item => {
         const p = item.photo || '알수없음';
-        if (!clicksByPhoto[p]) clicksByPhoto[p] = { count: 0 };
+        const url = item.photoUrl || null;
+        if (!clicksByPhoto[p]) clicksByPhoto[p] = { count: 0, photoUrl: null };
         clicksByPhoto[p].count++;
+        if (url) clicksByPhoto[p].photoUrl = url; // 최신으로 갱신
       });
 
       // durations 집계
       const dursByPhoto = {};
       Object.values(durs).forEach(item => {
         const p = item.photo || '알수없음';
+        const url = item.photoUrl || null;
         const duration = Number(item.duration) || 0;
-        if (!dursByPhoto[p]) dursByPhoto[p] = { sum: 0, count: 0 };
+        if (!dursByPhoto[p]) dursByPhoto[p] = { sum: 0, count: 0, photoUrl: null };
         dursByPhoto[p].sum += duration;
         dursByPhoto[p].count++;
+        if (url) dursByPhoto[p].photoUrl = url;
       });
 
       // 합쳐서 전체 순위 목록 생성
       const allPhotos = new Set([...Object.keys(clicksByPhoto), ...Object.keys(dursByPhoto)]);
       const combined = Array.from(allPhotos).map(photo => {
-        const count = clicksByPhoto[photo] ? clicksByPhoto[photo].count : 0;
-        const durInfo = dursByPhoto[photo] || { sum:0, count:0 };
+        const clickInfo = clicksByPhoto[photo] || { count:0, photoUrl: null };
+        const durInfo = dursByPhoto[photo] || { sum:0, count:0, photoUrl: null };
+        const count = clickInfo.count;
         const avg = durInfo.count ? (durInfo.sum / durInfo.count) : null;
-        return { photo, count, avg };
+        const photoUrl = clickInfo.photoUrl || durInfo.photoUrl || null;
+        return { photo, count, avg, photoUrl };
       });
 
       // 내림차순 정렬 (클릭 수)
@@ -137,8 +438,9 @@
       } else {
         combined.forEach(rowInfo => {
           const row = tableBody.insertRow();
+          const thumbHtml = rowInfo.photoUrl ? `<img src="${rowInfo.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
           row.innerHTML = `
-            <td><strong>${rowInfo.photo}</strong></td>
+            <td><div style="display:flex;align-items:center">${thumbHtml}<strong>${rowInfo.photo}</strong></div></td>
             <td>${rowInfo.count}회</td>
             <td>${rowInfo.avg !== null ? rowInfo.avg.toFixed(1) + '초' : '-'}</td>
           `;
@@ -160,7 +462,10 @@
         const wk = weekStartSunday(ts);
         if (!weeks[wk]) weeks[wk] = {};
         const p = it.photo || '알수없음';
-        weeks[wk][p] = (weeks[wk][p] || 0) + 1;
+        const url = it.photoUrl || null;
+        if (!weeks[wk][p]) weeks[wk][p] = { count: 0, photoUrl: null };
+        weeks[wk][p].count += 1;
+        if (url) weeks[wk][p].photoUrl = url;
       });
 
       // determine recent weeks: get sorted week keys and pick last 'weeksBack'
@@ -183,7 +488,7 @@
 
       recentKeys.forEach(weekKey => {
         const weekData = weeks[weekKey] || {};
-        const items = Object.entries(weekData).map(([photo, count]) => ({ photo, count }));
+        const items = Object.entries(weekData).map(([photo, info]) => ({ photo, count: info.count, photoUrl: info.photoUrl || null }));
         items.sort((a,b) => b.count - a.count);
 
         const table = document.createElement('table');
@@ -198,7 +503,8 @@
         } else {
           items.forEach(it => {
             const r = tb.insertRow();
-            r.innerHTML = `<td>${it.photo}</td><td>${it.count}회</td>`;
+            const thumb = it.photoUrl ? `<img src="${it.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
+            r.innerHTML = `<td><div style="display:flex;align-items:center">${thumb}${it.photo}</div></td><td>${it.count}회</td>`;
           });
         }
         table.appendChild(tb);
