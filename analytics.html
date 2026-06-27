@@ -35,7 +35,6 @@
 <body>
   <div class="container">
     <h1>📊 사진 클릭 분석</h1>
-    
     <table>
       <thead>
         <tr>
@@ -50,11 +49,12 @@
     </table>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
-  
+  <!-- Firebase SDK (CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+
   <script>
-    // Firebase 초기화 (index.html과 동일)
+    // Firebase 초기화
     const firebaseConfig = {
       apiKey: "AIzaSyAsqwmC7EG7WdTtvSNvJ3A9AltdAOVJ_7E",
       authDomain: "girokgwan-45c3d.firebaseapp.com",
@@ -64,11 +64,13 @@
       appId: "1:1048676891088:web:f1e32c5dd0054fb0e40e4a"
     };
     
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
     
-    // Firebase에서 데이터 읽기
-    db.ref('analytics/photo_clicks').on('value', (snapshot) => {
+    // 데이터 읽기
+    database.ref('analytics/photo_clicks').on('value', (snapshot) => {
       const data = snapshot.val();
       
       if (!data) {
@@ -76,9 +78,7 @@
         return;
       }
       
-      // 사진별로 분류
       const photoData = {};
-      
       Object.values(data).forEach(item => {
         if (!photoData[item.photo]) {
           photoData[item.photo] = {
@@ -87,25 +87,18 @@
           };
         }
         photoData[item.photo].count++;
-        photoData[item.photo].times.push(item.timestamp);
       });
       
-      // 클릭 수 많은 순서로 정렬
       const sorted = Object.entries(photoData).sort((a, b) => b[1].count - a[1].count);
-      
-      // 표 채우기
       const tableBody = document.getElementById('tableBody');
       tableBody.innerHTML = '';
       
       sorted.forEach(([photo, info]) => {
-        // 평균 시간 계산 (밀리초를 초로 변환)
-        const avgTime = (info.times.reduce((a, b) => Math.abs(a - b), 0) / info.count / 1000).toFixed(1);
-        
         const row = tableBody.insertRow();
         row.innerHTML = `
           <td><strong>${photo}</strong></td>
           <td>${info.count}회</td>
-          <td>${avgTime}초</td>
+          <td>-</td>
         `;
       });
     });
