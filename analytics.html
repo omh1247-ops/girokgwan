@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>기록관 - 분석</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Arial', sans-serif; 
+      padding: 40px 20px;
+      background: #f9f9f9;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { margin-bottom: 30px; color: #333; }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    th, td { 
+      border: 1px solid #ddd; 
+      padding: 15px; 
+      text-align: left;
+    }
+    th { 
+      background: #333; 
+      color: white;
+      font-weight: bold;
+    }
+    tr:hover { background: #f5f5f5; }
+    .no-data { text-align: center; padding: 20px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 사진 클릭 분석</h1>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>사진</th>
+          <th>클릭 수</th>
+          <th>평균 시간 (초)</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="3" class="no-data">데이터 로딩 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+  
+  <script>
+    // Firebase 초기화 (index.html과 동일)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAsqwmC7EG7WdTtvSNvJ3A9AltdAOVJ_7E",
+      authDomain: "girokgwan-45c3d.firebaseapp.com",
+      projectId: "girokgwan-45c3d",
+      storageBucket: "girokgwan-45c3d.appspot.com",
+      messagingSenderId: "1048676891088",
+      appId: "1:1048676891088:web:f1e32c5dd0054fb0e40e4a"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Firebase에서 데이터 읽기
+    db.ref('analytics/photo_clicks').on('value', (snapshot) => {
+      const data = snapshot.val();
+      
+      if (!data) {
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="3" class="no-data">아직 데이터가 없습니다.</td></tr>';
+        return;
+      }
+      
+      // 사진별로 분류
+      const photoData = {};
+      
+      Object.values(data).forEach(item => {
+        if (!photoData[item.photo]) {
+          photoData[item.photo] = {
+            count: 0,
+            times: []
+          };
+        }
+        photoData[item.photo].count++;
+        photoData[item.photo].times.push(item.timestamp);
+      });
+      
+      // 클릭 수 많은 순서로 정렬
+      const sorted = Object.entries(photoData).sort((a, b) => b[1].count - a[1].count);
+      
+      // 표 채우기
+      const tableBody = document.getElementById('tableBody');
+      tableBody.innerHTML = '';
+      
+      sorted.forEach(([photo, info]) => {
+        // 평균 시간 계산 (밀리초를 초로 변환)
+        const avgTime = (info.times.reduce((a, b) => Math.abs(a - b), 0) / info.count / 1000).toFixed(1);
+        
+        const row = tableBody.insertRow();
+        row.innerHTML = `
+          <td><strong>${photo}</strong></td>
+          <td>${info.count}회</td>
+          <td>${avgTime}초</td>
+        `;
+      });
+    });
+  </script>
+</body>
+</html>
