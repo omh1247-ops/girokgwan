@@ -1857,19 +1857,20 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 <script>
-// 사진 클릭 추적
+// 사진 클릭 추적 (파일명 포함)
 document.addEventListener('click', function(e) {
   const photoItem = e.target.closest('.photo-item');
   if (photoItem) {
     const img = photoItem.querySelector('img');
     if (img && img.src) {
       const sectionName = photoItem.closest('.photo-section')?.id || '알수없음';
+      const fileName = img.src.split('/').pop(); // 파일명만 추출
       gtag('event', 'photo_click', {
         'event_category': 'engagement',
         'event_label': sectionName,
-        'photo_url': img.src
+        'photo_file': fileName
       });
-      console.log('📸 사진 클릭 기록:', sectionName);
+      console.log('📸 사진 클릭:', sectionName, fileName);
     }
   }
 });
