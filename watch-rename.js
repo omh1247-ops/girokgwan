@@ -24,6 +24,7 @@ const FOLDERS = [
 ];
 
 const IMAGE_EXT_RE = /^(jpg|jpeg|png|gif|webp|heic|heif)$/i;
+const IGNORED_FILES = ['.DS_Store'];
 
 const COMPRESS_OPTS = {
   maxDim: 1920,         // 긴 쪽 기준 최대 1920px (비율 유지, sips -Z)
@@ -66,7 +67,9 @@ function isImageFile(filename) {
 }
 
 function getImageFiles(folderPath) {
-  return fs.readdirSync(folderPath).filter(isImageFile);
+  return fs.readdirSync(folderPath)
+    .filter(file => !IGNORED_FILES.includes(file))
+    .filter(isImageFile);
 }
 
 function formatKB(bytes) {
@@ -105,7 +108,7 @@ function reorganizeFolder(folderPath, dir, prefix, jsonKey, silent = false) {
   processing[dir] = true;
   try {
     const files = getImageFiles(folderPath);
-    const pattern = new RegExp(`^${prefix}(\\d+)\\.[a-zA-Z]+$`);
+    const pattern = new RegExp(`^${prefix}(\d+)\.([a-zA-Z0-9]+)$`);
 
     const known = [];
     const unknown = [];

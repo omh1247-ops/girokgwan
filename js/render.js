@@ -13,8 +13,6 @@ async function renderPhotoGalleries() {
     }
 
     for (const [category, filenames] of Object.entries(photos)) {
-      // `personalwork` 데이터는 보관하되 홈페이지에서는 숨기도록 처리합니다.
-      if (category === 'personalwork') continue;
       const grid = document.querySelector(`#sec-${category} .photo-grid`);
       if (!grid) continue;
 
@@ -23,16 +21,20 @@ async function renderPhotoGalleries() {
       shuffleArray(items);
 
       grid.innerHTML = items.map((fn, i) => {
-        const path = category === 'portraiture' ? 'portraiture' : category.charAt(0).toUpperCase() + category.slice(1);
+        const path = category === 'portraiture'
+          ? 'portraiture'
+          : category === 'personalwork'
+            ? 'Personal Works'
+            : category.charAt(0).toUpperCase() + category.slice(1);
         // portraiture에서 특정 파일에만 희미한 테두리 적용
         let extraClass = '';
         if (category === 'portraiture') {
           const highlightList = ['portrait17', 'portrait22', 'portrait23'];
           if (highlightList.includes(fn)) extraClass = ' faint-border';
         }
-        const randomRatio = Math.random();
-        const widthPercent = 90 + Math.round(randomRatio * 10); // 90%~100%
-        return `<div class="photo-item${extraClass}" style="width:${widthPercent}%;margin-left:auto;margin-right:auto;" onclick="openLightbox(event, '${path}/${fn}.jpg')">
+        const isPersonal = category === 'personalwork';
+        const itemClass = `photo-item${extraClass}${isPersonal ? ' personalwork' : ''}`;
+        return `<div class="${itemClass}" onclick="openLightbox(event, '${path}/${fn}.jpg')">
             <img loading="lazy" decoding="async" src="${path}/${fn}.jpg" alt="${category} ${i+1}" onerror="removePhotoItem(this)">
           </div>`;
       }).join('');
