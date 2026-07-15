@@ -1343,8 +1343,8 @@ if (container) container.style.display = hasOnlyAllDay ? 'none' : '';
  
  // 시간 라벨과 셀 생성
  let html = '';
- for (let h = 0; h < 24; h++) {
- const hourStr = String(h).padStart(2, '0');
+ for (let h = 0; h <= 24; h++) {
+ const hourStr = h === 24 ? '24' : String(h).padStart(2, '0');
  html += `<div class="cal-time-label">${hourStr}</div>`;
  html += `<div class="cal-time-cell" data-hour="${h}"></div>`;
  }
@@ -1549,12 +1549,25 @@ if (!events.length) {
 switchModalView('editListView');
 }
 
+function parseScheduleHourToDate(dateStr, hourValue) {
+  const hour = parseInt(hourValue || '00', 10);
+  if (Number.isNaN(hour) || hour < 0 || hour > 24) {
+    return new Date(`${dateStr}T00:00:00`);
+  }
+  if (hour === 24) {
+    const nextDay = new Date(`${dateStr}T00:00:00`);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return nextDay;
+  }
+  return new Date(`${dateStr}T${String(hour).padStart(2, '0')}:00:00`);
+}
+
 // ─── 과거 시점 경고 팝업 ───
 function checkPastWarning(dateStr, startTime, endTime, title, type, isAllDay, action) {
 const now = new Date();
 const targetTime = isAllDay 
   ? new Date(dateStr + 'T23:59:59')
-  : new Date(dateStr + 'T' + (startTime || '00') + ':00:00');
+  : parseScheduleHourToDate(dateStr, startTime);
 
 if (targetTime >= now) return true; // 미래면 통과
 
@@ -1773,9 +1786,13 @@ if (!confirm(message)) return;
  // 시/분 옵션 생성
  function buildHourOptions(id) {
  const sel = document.getElementById(id);
+ if (!sel) return;
  let html = '<option value="">--</option>';
- for (let h = 0; h < 24; h++)
- html += `<option value="${String(h).padStart(2,'0')}">${String(h).padStart(2,'0')}</option>`;
+ for (let h = 0; h <= 24; h++) {
+   const value = h === 24 ? '24' : String(h).padStart(2, '0');
+   const label = h === 24 ? '24' : String(h).padStart(2, '0');
+   html += `<option value="${value}">${label}</option>`;
+ }
  sel.innerHTML = html;
  }
 
