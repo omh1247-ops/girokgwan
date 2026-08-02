@@ -56,6 +56,12 @@
       margin-top: 4px;
       font-size: 0.95rem;
     }
+    .daily-calendar-header .calendar-summary {
+      color: #444;
+      margin-top: 6px;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
     .daily-calendar-header button {
       width: 38px;
       height: 38px;
@@ -159,6 +165,7 @@
         <div>
           <h2>일일 방문자수</h2>
           <div class="calendar-title-meta" id="calendarMonthLabel">YYYY. MM</div>
+          <div class="calendar-summary" id="calendarSummary">총 0명 · 평균 0명</div>
         </div>
         <div>
           <button type="button" id="prevMonthBtn">←</button>
@@ -277,7 +284,18 @@
         emptyCell.className = 'daily-calendar-cell inactive';
         grid.appendChild(emptyCell);
       }
-
+      const todayDate = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      const currentYear = todayDate.getUTCFullYear();
+      const currentMonth = todayDate.getUTCMonth();
+      const currentDay = todayDate.getUTCDate();
+      const isCurrentMonth = calendarYear === currentYear && calendarMonth === currentMonth;
+      const visibleDays = isCurrentMonth ? Math.min(currentDay, daysInMonth) : daysInMonth;
+      const totalVisible = monthCounts.slice(0, visibleDays).reduce((sum, value) => sum + value, 0);
+      const averageVisible = visibleDays ? Math.round(totalVisible / visibleDays) : 0;
+      const summaryLabel = document.getElementById('calendarSummary');
+      if (summaryLabel) {
+        summaryLabel.textContent = `총 ${totalVisible}명 · 평균 ${averageVisible}명` + (isCurrentMonth ? ` (${visibleDays}일까지)` : ` (${visibleDays}일 평균)`);
+      }
       for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const count = dailyVisitCounts[dateStr] || 0;
