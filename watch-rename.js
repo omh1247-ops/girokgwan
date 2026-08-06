@@ -100,8 +100,8 @@ function compressImage(srcPath, destPath) {
 
 /**
  * 폴더 전체를 다시 보고:
- * 1) 기존 정상 파일(known) → 번호만 빈틈없이 재정렬 (압축 안 함, 그대로 유지)
- * 2) 새 원본 파일(unknown) → 압축 + 다음 번호로 저장 (원본은 압축 성공 후 삭제)
+ * 1) 기존 정상 파일(known) → 이름 그대로 유지
+ * 2) 새 원본 파일(unknown) → 압축 + 폴더에 남아있는 파일 중 가장 큰 번호 다음으로 저장
  * 3) photos.json의 해당 카테고리를 최종 상태로 동기화
  */
 function reorganizeFolder(folderPath, dir, prefix, jsonKey, silent = false) {
@@ -131,31 +131,9 @@ function reorganizeFolder(folderPath, dir, prefix, jsonKey, silent = false) {
       return;
     }
 
-    // 1단계: 기존 파일 번호 재정렬 (충돌 방지를 위해 임시이름 경유)
-    const knownTargets = known.map((k, i) => {
-      const ext = k.file.split('.').pop().toLowerCase();
-      const num = String(i + 1).padStart(2, '0');
-      return { oldFile: k.file, newName: `${prefix}${num}.${ext}` };
-    });
-    const knownNeedsRename = knownTargets.filter(t => t.oldFile !== t.newName);
-
-    knownNeedsRename.forEach((t, i) => {
-      const ext = t.oldFile.split('.').pop();
-      const tempName = `__tmp_${Date.now()}_${i}.${ext}`;
-      fs.renameSync(path.join(folderPath, t.oldFile), path.join(folderPath, tempName));
-      t._tempName = tempName;
-    });
-    knownNeedsRename.forEach(t => {
-      fs.renameSync(path.join(folderPath, t._tempName), path.join(folderPath, t.newName));
-    });
-
-    if (knownNeedsRename.length > 0) {
-      console.log(`📌 [${dir}] 번호 재정렬 (${knownNeedsRename.length}개):`);
-      knownNeedsRename.forEach(t => console.log(`   ${t.oldFile} → ${t.newName}`));
-    }
-
+    // 기존 known 파일은 이름을 그대로 유지합니다.
     // 2단계: 새 원본 파일 압축 + 다음 번호로 저장
-    let nextNum = known.length + 1;
+    const nextNum = known.length > 0 ? known[known.length - 1].num + 1 : 1;
     const compressedResults = [];
 
     unknown.forEach(u => {
@@ -182,7 +160,7 @@ function reorganizeFolder(folderPath, dir, prefix, jsonKey, silent = false) {
       });
     }
 
-    if (knownNeedsRename.length === 0 && compressedResults.length === 0 && !silent) {
+    if (compressedResults.length === 0 && !silent) {
       console.log(`✅ [${dir}] 변경 없음`);
     }
 

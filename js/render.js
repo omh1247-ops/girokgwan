@@ -1,4 +1,9 @@
 // ─── 사진 갤러리 렌더 ───
+function normalizePhotoKey(value) {
+  if (!value) return value;
+  return typeof value.normalize === 'function' ? value.normalize('NFC') : value;
+}
+
 async function renderPhotoGalleries() {
   try {
     const res = await fetch('data/photos.json');
@@ -16,16 +21,29 @@ async function renderPhotoGalleries() {
       const grid = document.querySelector(`#sec-${category} .photo-grid`);
       if (!grid) continue;
 
+      // 중복된 항목이 있을 경우 정규화하여 하나로 유지
+      const seen = new Set();
+      const normalizedItems = [];
+      for (const fn of filenames) {
+        const key = normalizePhotoKey(fn);
+        if (!seen.has(key)) {
+          seen.add(key);
+          normalizedItems.push(fn);
+        }
+      }
+
       // 랜덤 배치: 원본 배열을 건드리지 않도록 복사 후 셔플
-      const items = filenames.slice();
+      const items = normalizedItems.slice();
       shuffleArray(items);
 
       grid.innerHTML = items.map((fn, i) => {
         const path = category === 'portraiture'
           ? 'portraiture'
-          : category === 'personalwork'
-            ? 'Personal Works'
-            : category.charAt(0).toUpperCase() + category.slice(1);
+          : category === 'artist'
+            ? 'Artist'
+            : category === 'personalwork'
+              ? 'Personal Works'
+              : category.charAt(0).toUpperCase() + category.slice(1);
         // portraiture에서 특정 파일에만 희미한 테두리 적용
         let extraClass = '';
         if (category === 'portraiture') {
@@ -34,8 +52,9 @@ async function renderPhotoGalleries() {
         }
         const isPersonal = category === 'personalwork';
         const itemClass = `photo-item${extraClass}${isPersonal ? ' personalwork' : ''}`;
-        return `<div class="${itemClass}" onclick="openLightbox(event, '${path}/${fn}.jpg')">
-            <img loading="lazy" decoding="async" src="${path}/${fn}.jpg" alt="${category} ${i+1}" onerror="removePhotoItem(this)">
+        const basePath = `${path}/${fn}`;
+        return `<div class="${itemClass}" onclick="openLightbox(event, '${basePath}.jpg')">
+            <img loading="lazy" decoding="async" src="${basePath}.jpg" alt="${category} ${i+1}" onerror="this.onerror=null;this.src='${basePath}.jpeg';">
           </div>`;
       }).join('');
     }

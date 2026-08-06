@@ -366,6 +366,37 @@
       renderFirstClickRanking();
     }
 
+    function getPhotoUrl(photoName) {
+      if (!photoName) return null;
+      let name = String(photoName).trim();
+      name = name.replace(/\.(jpe?g|png|webp)$/i, '');
+      const lower = name.toLowerCase();
+      if (lower.startsWith('portrait')) return `portraiture/${name}.jpg`;
+      if (lower.startsWith('personalwork')) return `Personal Works/${name}.jpg`;
+      if (lower.startsWith('product')) return `Product/${name}.jpg`;
+      if (lower.startsWith('moment')) return `Moment/${name}.jpg`;
+      if (lower.startsWith('food')) return `Food/${name}.jpg`;
+      if (/^\d+$/.test(name)) {
+        const padded = name.padStart(2, '0');
+        if (Number(name) <= 12) return `Product/product${padded}.jpg`;
+        if (Number(name) <= 24) return `Moment/moment${padded}.jpg`;
+        return `portraiture/portrait${padded}.jpg`;
+      }
+      return `${name}.jpg`;
+    }
+
+    function attachThumbErrorHandler(img, tbody, cols, emptyText) {
+      if (!img || !tbody) return;
+      img.addEventListener('error', function() {
+        const row = this.closest('tr');
+        if (!row) return;
+        row.remove();
+        if (tbody.querySelectorAll('tr').length === 0) {
+          tbody.innerHTML = `<tr><td colspan="${cols}" class="no-data">${emptyText}</td></tr>`;
+        }
+      });
+    }
+
     function renderFirstClickRanking() {
       const body = document.getElementById('firstClickBody');
       body.innerHTML = '';
@@ -383,7 +414,8 @@
 
       rows.forEach((item, index) => {
         const row = body.insertRow();
-        const thumbHtml = item.photoUrl ? `<img src="${item.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
+        const photoUrl = item.photoUrl || getPhotoUrl(item.photo);
+        const thumbHtml = photoUrl ? `<img src="${photoUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
         const ratio = firstClickTotal > 0 ? ((item.count / firstClickTotal) * 100).toFixed(1) : '0.0';
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -391,6 +423,8 @@
           <td>${item.count}회</td>
           <td>${ratio}%</td>
         `;
+        const img = row.querySelector('img');
+        attachThumbErrorHandler(img, body, 4, '아직 데이터가 없습니다.');
       });
     }
 
@@ -465,12 +499,15 @@
       } else {
         combined.forEach(rowInfo => {
           const row = tableBody.insertRow();
-          const thumbHtml = rowInfo.photoUrl ? `<img src="${rowInfo.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
+          const photoUrl = rowInfo.photoUrl || getPhotoUrl(rowInfo.photo);
+          const thumbHtml = photoUrl ? `<img src="${photoUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
           row.innerHTML = `
             <td><div style="display:flex;align-items:center">${thumbHtml}<strong>${rowInfo.photo}</strong></div></td>
             <td>${rowInfo.count}회</td>
             <td>${rowInfo.avg !== null ? rowInfo.avg.toFixed(1) + '초' : '-'}</td>
           `;
+          const img = row.querySelector('img');
+          attachThumbErrorHandler(img, tableBody, 3, '아직 데이터가 없습니다.');
         });
       }
 
@@ -537,9 +574,12 @@
         currentTbody.innerHTML = '<tr><td colspan="2" class="no-data">아직 데이터가 없습니다.</td></tr>';
       } else {
         currentWeekItems.slice(0, 10).forEach(it => {
-          const r = currentTbody.insertRow();
-          const thumb = it.photoUrl ? `<img src="${it.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
-          r.innerHTML = `<td><div style="display:flex;align-items:center">${thumb}${it.photo}</div></td><td>${it.count}회</td>`;
+          const row = currentTbody.insertRow();
+          const photoUrl = it.photoUrl || getPhotoUrl(it.photo);
+          const thumb = photoUrl ? `<img src="${photoUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
+          row.innerHTML = `<td><div style="display:flex;align-items:center">${thumb}${it.photo}</div></td><td>${it.count}회</td>`;
+          const img = row.querySelector('img');
+          attachThumbErrorHandler(img, currentTbody, 2, '아직 데이터가 없습니다.');
         });
       }
       currentTable.appendChild(currentTbody);
@@ -565,15 +605,18 @@
           if (!items.length) return;
           items.sort((a,b) => b.count - a.count);
           const top = items[0];
-          const r = pastTbody.insertRow();
-          const thumb = top.photoUrl ? `<img src="${top.photoUrl}" onerror="this.style.display='none'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
+          const row = pastTbody.insertRow();
+          const photoUrl = top.photoUrl || getPhotoUrl(top.photo);
+          const thumb = photoUrl ? `<img src="${photoUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;margin-right:10px;vertical-align:middle;display:inline-block;">` : '';
           const weekDate = new Date(weekKey + 'T00:00:00');
           const label = getWeekOfMonthLabel(weekDate);
-          r.innerHTML = `
+          row.innerHTML = `
             <td>${label}</td>
             <td><div style="display:flex;align-items:center">${thumb}${top.photo}</div></td>
             <td>${top.count}회</td>
           `;
+          const img = row.querySelector('img');
+          attachThumbErrorHandler(img, pastTbody, 3, '아직 기록이 없습니다.');
         });
       }
       pastTable.appendChild(pastTbody);
