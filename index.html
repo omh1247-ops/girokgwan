@@ -871,7 +871,9 @@ function showLightboxImg() {
  showLightboxImg();
  }
  function handleLightboxClick(e) {
+   const modal = document.getElementById('videoModal');
    const img = document.getElementById('lightbox-img');
+   if (modal && modal.classList.contains('active')) return;
    if (e.target.closest('.lightbox-close')) return;
    // 사진 안을 클릭 → 좌우 넘김 (사진 기준 중앙)
    if (e.target === img) {
@@ -915,6 +917,11 @@ function showLightboxImg() {
    }
  }
  document.addEventListener('keydown', e => {
+   const videoModal = document.getElementById('videoModal');
+   if (videoModal && videoModal.classList.contains('active')) {
+     if (e.key === 'Escape') closeVideoModal();
+     return;
+   }
    if (e.key === 'Escape') closeLightbox();
    if (e.key === 'ArrowLeft') lbPrev();
    if (e.key === 'ArrowRight') lbNext();
@@ -2067,7 +2074,8 @@ function removeAutoStartListeners() {
 function tryAutoStart(event) {
   const target = event.target instanceof Element ? event.target : event.target.parentElement;
   if (hasStartedPlaying || !audio.paused || userPausedManually) return;
-  if (target && target.closest('.player-controls')) return;
+  if (!target) return;
+  if (target.closest('.player-controls') || target.closest('.video-modal') || target.closest('.video-card') || target.closest('.video-nav-arrow')) return;
 
   audio.currentTime = 0;
   audio.play()
