@@ -135,7 +135,24 @@
 .video-nav-arrow:hover{opacity:1}
 .video-nav-arrow.prev{left:1.5rem}
 .video-nav-arrow.next{right:1.5rem}
-@media (max-width:900px){.video-modal-content{max-width:95vw;aspect-ratio:16/9}.video-modal-close{font-size:1.6rem;top:1rem;right:1rem}.video-nav-arrow{font-size:1.4rem;padding:.4rem;left:1rem!important;right:1rem!important}.video-nav-arrow.prev{left:1rem!important}.video-nav-arrow.next{right:1rem!important}}
+@media (max-width:900px){
+  .video-modal-content{max-width:95vw;aspect-ratio:16/9}
+  .video-modal-close{font-size:1.6rem;top:1rem;right:1rem}
+  .video-nav-arrow{
+    top:auto;bottom:1rem;transform:none;
+    font-size:1.4rem;padding:.6rem;
+    width:2.5rem;height:2.5rem;border-radius:999px;
+    background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.35);
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(4px);
+    z-index:1001;
+    pointer-events:auto;
+  }
+  .video-nav-arrow.prev{left:1rem!important;right:auto}
+  .video-nav-arrow.next{right:1rem!important;left:auto}
+  .video-card .play-ring{width:3.2rem;height:3.2rem}
+  .video-card .play-ring svg{width:1.1rem;height:1.1rem}
+}
 </style>
 <style>
 /* Directions section: text + map side by side */
@@ -2090,6 +2107,22 @@ function tryAutoStart(event) {
 document.addEventListener('click', tryAutoStart, true);
 document.addEventListener('keydown', tryAutoStart, true);
 document.addEventListener('touchstart', tryAutoStart, true);
+
+document.addEventListener('touchstart', (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+  if (target.closest('.video-card') || target.closest('.video-nav-arrow') || target.closest('#videoModal')) {
+    event.stopPropagation();
+  }
+}, { capture: true, passive: false });
+
+document.addEventListener('touchend', (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (!target) return;
+  if (target.closest('.video-card') || target.closest('.video-nav-arrow') || target.closest('#videoModal')) {
+    event.stopPropagation();
+  }
+}, { capture: true, passive: false });
 
 /* Video Modal Functions */
 let videoWasPlaying = false;
