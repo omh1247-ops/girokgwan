@@ -40,7 +40,7 @@ async function renderPhotoGalleries() {
         const path = category === 'portraiture'
           ? 'portraiture'
           : category === 'artist'
-            ? 'Artist'
+            ? 'artist'
             : category === 'personalwork'
               ? 'Personal Works'
               : category.charAt(0).toUpperCase() + category.slice(1);
