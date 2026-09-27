@@ -95,9 +95,7 @@
 </style>
 <style>
 /* Make the faint border visible in normal state by applying to the image */
-.photo-item.faint-border{border-radius:8px}
-.photo-item.faint-border img{box-shadow:0 0 0 1.8px rgba(0,0,0,0.14);border-radius:8px;transition:box-shadow .22s ease}
-@media (max-width:900px){.photo-item.faint-border img{box-shadow:0 0 0 1.2px rgba(0,0,0,0.12)}}
+.photo-item{display:inline-block;width:100%;margin:0 0 .6rem;break-inside:avoid;vertical-align:top}.photo-item img{display:block;width:100%;height:auto;border-radius:8px;transition:transform .25s ease,box-shadow .22s ease;object-fit:cover}.photo-item.size-small img{aspect-ratio:1/1.5;transform:scale(.82);transform-origin:center}.photo-item.size-large img{aspect-ratio:1/0.65;transform:scale(1.18);transform-origin:center}.photo-item.size-medium img{aspect-ratio:1/1.05;transform:scale(1)}.photo-item.faint-border{border-radius:8px}.photo-item.faint-border img{box-shadow:0 0 0 1.8px rgba(0,0,0,0.14);border-radius:8px;transition:box-shadow .22s ease}.photo-item.size-large img,.photo-item.size-small img{box-shadow:0 0 0 1px rgba(0,0,0,.04)}@media (max-width:900px){.photo-item.faint-border img{box-shadow:0 0 0 1.2px rgba(0,0,0,0.12)}.photo-item.size-small img{aspect-ratio:1/1.35;transform:scale(.88)}.photo-item.size-large img{aspect-ratio:1/0.75;transform:scale(1.12)}}
 </style>
 <style>
 /* BGM player (minimal, mono-tone) */
