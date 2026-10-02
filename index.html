@@ -483,10 +483,33 @@
  updateSideNavStick();
  }
 
+ let _sideNavRefs = null;
+ function getSideNavRefs() {
+   if (_sideNavRefs) return _sideNavRefs;
+   const subnavPhoto = document.getElementById('subnav-photo');
+   const subnavVideo = document.getElementById('subnav-video');
+   _sideNavRefs = {
+     'subnav-photo': {
+       nav: subnavPhoto,
+       panel: document.getElementById('wp-photo'),
+       workBody: subnavPhoto ? subnavPhoto.closest('.work-body') : null
+     },
+     'subnav-video': {
+       nav: subnavVideo,
+       panel: document.getElementById('wp-video'),
+       workBody: subnavVideo ? subnavVideo.closest('.work-body') : null
+     },
+     topNavEl: document.getElementById('nav'),
+     workStickyHeaderEl: document.querySelector('.work-sticky-header')
+   };
+   return _sideNavRefs;
+ }
+
  function updateSideNavStick() {
+  const refs = getSideNavRefs();
   if (window.innerWidth < 1200) {
     ['subnav-photo', 'subnav-video'].forEach(navId => {
-      const nav = document.getElementById(navId);
+      const nav = refs[navId].nav;
       if (!nav) return;
       nav.style.top = '';
     });
@@ -494,14 +517,13 @@
   }
 
   ['subnav-photo', 'subnav-video'].forEach(navId => {
-    const nav = document.getElementById(navId);
+    const nav = refs[navId].nav;
     if (!nav || nav.style.display === 'none') return;
 
-    const panelId = navId === 'subnav-photo' ? 'wp-photo' : 'wp-video';
-    const panel = document.getElementById(panelId);
+    const panel = refs[navId].panel;
     if (!panel) return;
 
-    const workBody = nav.closest('.work-body');
+    const workBody = refs[navId].workBody;
     if (!workBody) return;
     const workBodyTopAbs = workBody.getBoundingClientRect().top + window.scrollY;
 
@@ -515,8 +537,8 @@
     }
 
     const navHeight = nav.offsetHeight;
-    const topNavEl = document.getElementById('nav');
-    const workStickyHeaderEl = document.querySelector('.work-sticky-header');
+    const topNavEl = refs.topNavEl;
+    const workStickyHeaderEl = refs.workStickyHeaderEl;
     const topNavHeight = topNavEl ? topNavEl.offsetHeight : 62;
     const workStickyHeaderHeight = workStickyHeaderEl ? workStickyHeaderEl.offsetHeight : 0;
     const stickyTopOffset = topNavHeight + workStickyHeaderHeight + 24;
