@@ -5,12 +5,18 @@ function normalizePhotoKey(value) {
 }
 
 function handlePhotoError(img) {
+  // webp -> jpg -> jpeg 순서로 폴백
+  if (!img.dataset.triedJpg) {
+    img.dataset.triedJpg = '1';
+    img.src = img.dataset.base + '.jpg';
+    return;
+  }
   if (!img.dataset.triedJpeg) {
     img.dataset.triedJpeg = '1';
     img.src = img.dataset.base + '.jpeg';
     return;
   }
-  // .jpg, .jpeg 둘 다 없으면 깨진 이미지/텍스트 없이 그냥 숨김
+  // webp, .jpg, .jpeg 다 없으면 깨진 이미지/텍스트 없이 그냥 숨김
   const item = img.closest('.photo-item');
   if (item) item.remove();
 }
@@ -64,8 +70,9 @@ async function renderPhotoGalleries() {
         const isPersonal = category === 'personalwork';
         const itemClass = `photo-item${extraClass}${isPersonal ? ' personalwork' : ''}`;
         const basePath = `${path}/${fn}`;
+        const webpPath = `web/${path}/${fn}.webp`;
         return `<div class="${itemClass}" onclick="openLightbox(event, '${basePath}.jpg')">
-            <img loading="lazy" decoding="async" src="${basePath}.jpg" alt="${category} ${i+1}" data-base="${basePath}" onerror="handlePhotoError(this)">
+            <img loading="lazy" decoding="async" src="${webpPath}" alt="${category} ${i+1}" data-base="${basePath}" onerror="handlePhotoError(this)">
           </div>`;
       }).join('');
     }
