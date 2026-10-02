@@ -819,7 +819,7 @@ function finalizeLightboxDuration() {
     }
     const durationSec = Math.round((lightboxAccumulatedMs / 100)) / 10; // 소수점1자리 (예: 1.2)
     // durationSec이 0보다 클 때만 저장
-    if (lightboxOpenPhoto && durationSec > 0) {
+    if (lightboxOpenPhoto && durationSec > 0 && rdb) {
       rdb.ref('analytics/photo_durations').push({
         photo: lightboxOpenPhoto,
         photoUrl: lightboxOpenPhotoUrl,
@@ -880,15 +880,17 @@ function showLightboxImg() {
   lightboxOpenPhoto = newSrc.split('/').pop();
   lightboxOpenPhotoUrl = newSrc;
 
-  rdb.ref('analytics/photo_clicks').push({
-    photo: lightboxOpenPhoto,
-    photoUrl: lightboxOpenPhotoUrl,
-    timestamp: Date.now()
-  }).then(() => {
-    console.log('✅ 사진 클릭 저장됨(라이트박스 넘김):', lightboxOpenPhoto);
-  }).catch(err => {
-    console.warn('Firebase Realtime DB 저장 실패(라이트박스 넘김):', err);
-  });
+  if (rdb) {
+    rdb.ref('analytics/photo_clicks').push({
+      photo: lightboxOpenPhoto,
+      photoUrl: lightboxOpenPhotoUrl,
+      timestamp: Date.now()
+    }).then(() => {
+      console.log('✅ 사진 클릭 저장됨(라이트박스 넘김):', lightboxOpenPhoto);
+    }).catch(err => {
+      console.warn('Firebase Realtime DB 저장 실패(라이트박스 넘김):', err);
+    });
+  }
 
   // 초기화
   lightboxAccumulatedMs = 0;
@@ -1092,9 +1094,46 @@ function showLightboxImg() {
  messagingSenderId: "101459034031",
  appId: "1:101459034031:web:839af145f8380711ec795a"
  };
- firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const rdb = firebase.database();
+ let db, rdb;
+ let firebaseReady = null;
+ function ensureFirebase() {
+   if (firebaseReady) return firebaseReady;
+   firebaseReady = new Promise((resolve, reject) => {
+     try {
+       if (!firebase.apps.length) {
+         firebase.initializeApp(firebaseConfig);
+       }
+       const _db = firebase.firestore();
+       const _rdb = firebase.database();
+       // Firestore 영속성 활성화 (오프라인 지원) - 기존 에러 처리 그대로 유지
+       _db.enablePersistence().catch((err) => {
+         if (err.code == 'failed-precondition') {
+           console.log('⚠️ 여러 탭에서 열려있음');
+         } else if (err.code == 'unimplemented') {
+           console.log('⚠️ 이 브라우저는 오프라인 지원 안 됨');
+         }
+       }).finally(() => {
+         db = _db;
+         rdb = _rdb;
+         window.db = db;
+         window.rdb = rdb;
+         resolve({ db, rdb });
+       });
+     } catch (error) {
+       firebaseReady = null;
+       reject(error);
+     }
+   });
+   return firebaseReady;
+ }
+
+ // 첫 화면 렌더링을 막지 않도록, 브라우저가 한가할 때 Firebase 초기화 시작
+ const runFirebaseInitWhenIdle = window.requestIdleCallback || function(cb) { setTimeout(cb, 100); };
+ runFirebaseInitWhenIdle(() => {
+   ensureFirebase().catch((error) => {
+     console.error('Firebase initialization failed:', error);
+   });
+ });
 
 function getKSTDateString(timestampMs) {
   const kstMs = timestampMs + 9 * 60 * 60 * 1000;
@@ -1110,25 +1149,20 @@ function trackDailyVisit() {
   const lastVisit = localStorage.getItem('girokgwan_last_visit_date');
   if (lastVisit === today) return;
 
-  rdb.ref('analytics/daily_visits').push({
-    date: today,
-    timestamp: Date.now()
-  }).then(() => {
-    console.log('✅ 오늘 방문 기록됨: ' + today);
-    localStorage.setItem('girokgwan_last_visit_date', today);
+  ensureFirebase().then(({ rdb }) => {
+    rdb.ref('analytics/daily_visits').push({
+      date: today,
+      timestamp: Date.now()
+    }).then(() => {
+      console.log('✅ 오늘 방문 기록됨: ' + today);
+      localStorage.setItem('girokgwan_last_visit_date', today);
+    }).catch((err) => {
+      console.warn('오늘 방문 기록 저장 실패:', err);
+    });
   }).catch((err) => {
-    console.warn('오늘 방문 기록 저장 실패:', err);
+    console.warn('Firebase 준비 실패로 방문 기록 생략:', err);
   });
 }
-
- // Firestore 영속성 활성화 (오프라인 지원)
- db.enablePersistence().catch((err) => {
- if (err.code == 'failed-precondition') {
- console.log('⚠️ 여러 탭에서 열려있음');
- } else if (err.code == 'unimplemented') {
- console.log('⚠️ 이 브라우저는 오프라인 지원 안 됨');
- }
- });
 
  let fbUnsubscribe = null; // Firebase 리스너 unsubscribe 함수
 
@@ -1205,7 +1239,7 @@ function getVisibleEvents(events, mode = EVENT_FILTER_MODE) {
 }
 
  // ─── Firebase + localStorage 이벤트 로드 (실시간 동기화) ───
- function loadEvents() {
+ async function loadEvents() {
  // localStorage에서 초기 데이터 로드 (캐시)
  const backupData = localStorage.getItem('calEventsBackup');
  if (backupData) {
@@ -1226,6 +1260,8 @@ function getVisibleEvents(events, mode = EVENT_FILTER_MODE) {
  fbUnsubscribe();
  console.log('🔄 이전 Firebase 리스너 종료');
  }
+
+ await ensureFirebase();
 
  let isFirstLoad = true;
  try {
@@ -2235,19 +2271,21 @@ document.addEventListener('click', function(e) {
       });
 
       // Firebase에도 저장 (Realtime Database)
-      rdb.ref('analytics/photo_clicks').push({
-        photo: fileName,
-        photoUrl: img.src,
-        timestamp: Date.now()
-      }).then(() => {
-        console.log('✅ 사진 클릭 저장됨:', fileName);
-      }).catch(err => {
-        console.warn('Firebase Realtime DB 저장 실패:', err);
-      });
+      if (rdb) {
+        rdb.ref('analytics/photo_clicks').push({
+          photo: fileName,
+          photoUrl: img.src,
+          timestamp: Date.now()
+        }).then(() => {
+          console.log('✅ 사진 클릭 저장됨:', fileName);
+        }).catch(err => {
+          console.warn('Firebase Realtime DB 저장 실패:', err);
+        });
+      }
 
       // 브라우저 단위 첫 클릭 사진 기록
       const firstClickDone = localStorage.getItem('girokgwan_first_click_done');
-      if (!firstClickDone) {
+      if (!firstClickDone && rdb) {
         rdb.ref('analytics/first_clicks').push({
           photo: fileName,
           photoUrl: img.src,
