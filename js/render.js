@@ -4,6 +4,17 @@ function normalizePhotoKey(value) {
   return typeof value.normalize === 'function' ? value.normalize('NFC') : value;
 }
 
+function handlePhotoError(img) {
+  if (!img.dataset.triedJpeg) {
+    img.dataset.triedJpeg = '1';
+    img.src = img.dataset.base + '.jpeg';
+    return;
+  }
+  // .jpg, .jpeg 둘 다 없으면 깨진 이미지/텍스트 없이 그냥 숨김
+  const item = img.closest('.photo-item');
+  if (item) item.remove();
+}
+
 async function renderPhotoGalleries() {
   try {
     const res = await fetch('data/photos.json');
@@ -54,7 +65,7 @@ async function renderPhotoGalleries() {
         const itemClass = `photo-item${extraClass}${isPersonal ? ' personalwork' : ''}`;
         const basePath = `${path}/${fn}`;
         return `<div class="${itemClass}" onclick="openLightbox(event, '${basePath}.jpg')">
-            <img loading="lazy" decoding="async" src="${basePath}.jpg" alt="${category} ${i+1}" onerror="this.onerror=null;this.src='${basePath}.jpeg';">
+            <img loading="lazy" decoding="async" src="${basePath}.jpg" alt="${category} ${i+1}" data-base="${basePath}" onerror="handlePhotoError(this)">
           </div>`;
       }).join('');
     }
