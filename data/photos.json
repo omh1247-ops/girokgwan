@@ -29,7 +29,9 @@
     "portrait33",
     "portrait34",
     "portrait35",
-    "portrait36"
+    "portrait36",
+    "portrait37",
+    "portrait38"
   ],
   "artist": [
     "KakaoTalk_Photo_2026-08-06-17-17-46",
@@ -85,10 +87,17 @@
     "moment23",
     "moment24",
     "moment25",
-    "moment26"
+    "moment26",
+    "moment27",
+    "moment28",
+    "moment29",
+    "moment30",
+    "moment31"
   ],
   "personalwork": [
     "personalwork01",
-    "personalwork02"
+    "personalwork02",
+    "personalwork03",
+    "personalwork04"
   ]
 }
