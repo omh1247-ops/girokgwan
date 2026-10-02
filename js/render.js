@@ -51,8 +51,7 @@ async function renderPhotoGalleries() {
           if (highlightList.includes(fn)) extraClass = ' faint-border';
         }
         const isPersonal = category === 'personalwork';
-        const sizeClass = ['size-small', 'size-medium', 'size-large'][Math.floor(Math.random() * 3)];
-        const itemClass = `photo-item ${sizeClass}${extraClass}${isPersonal ? ' personalwork' : ''}`;
+        const itemClass = `photo-item${extraClass}${isPersonal ? ' personalwork' : ''}`;
         const basePath = `${path}/${fn}`;
         return `<div class="${itemClass}" onclick="openLightbox(event, '${basePath}.jpg')">
             <img loading="lazy" decoding="async" src="${basePath}.jpg" alt="${category} ${i+1}" onerror="this.onerror=null;this.src='${basePath}.jpeg';">
